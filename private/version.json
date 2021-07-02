@@ -1,0 +1,15 @@
+{
+    "version": "1.0.4",
+    "timestamp": "2021-06-15",
+    
+    "details": [
+        { 
+            "version": "1.0.3", 
+            "description": "Prüfen von untergeordneten Bausteinen, ob das Elternelement bereits gelöscht wurde. Ist dem so, so wir das betroffene Element ebenfalls als gelöscht markiert." 
+        },
+        { 
+            "version": "1.0.4", 
+            "description": "Bugfix #47 - Der Wert der aktuellen Bearbeitung eines Bausteins geht nicht mehr verloren, wenn ein anderer Benutzer z. B. Variablen aktualisiert." 
+        }
+    ]
+}

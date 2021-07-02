@@ -1,0 +1,67 @@
+<head>
+    <style>
+        .article {
+   display: flex;
+ }
+ .article .item,
+ .article .price {
+   flex: 1 0 auto;
+ }
+ .article .dots {
+   flex: 0 1 auto;
+   /*Allows too long content to be hidden.*/
+   overflow: hidden;
+   padding: 0 8px;
+ }
+ .dots::before {
+   display: block;
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: clip;
+   content: 
+     ". . . . . . . . . . . . . . . . . . . . "
+     ". . . . . . . . . . . . . . . . . . . . "
+     ". . . . . . . . . . . . . . . . . . . . "
+     ". . . . . . . . . . . . . . . . . . . . "
+ }
+
+ .depth-1 {
+     padding-left: 0px
+ }
+
+ .depth-2 {
+     padding-left: 32px
+ }
+
+    </style>
+</head>
+<body>
+    <div class="toc1">
+        <h1>Inhaltsverz.</h1>
+
+        <div class="article">
+            <span class="item depth-1">1. Auftrag</span>
+            <span class="dots"></span>
+            <span class="price">3</span>
+        </div>
+
+        <div class="article">
+            <span class="item depth-1">2. Methode</span>
+            <span class="dots"></span>
+            <span class="price">4</span>
+        </div>
+
+        <div class="article">
+            <span class="item depth-2">2.1 Hinweise zur Methodik</span>
+            <span class="dots"></span>
+            <span class="price">4</span>
+        </div>
+    
+        <div class="article">
+            <span class="item depth-1">3. Fazit</span>
+            <span class="dots"></span>
+            <span class="price">24</span>
+        </div>
+    </div>
+
+</body>
