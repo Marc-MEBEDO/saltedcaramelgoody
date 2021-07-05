@@ -1,11 +1,11 @@
 import { Meteor } from 'meteor/meteor';
 
+import './appdesign/application';
+
 import './fixtures';
 import './publications';
 import './methods'; 
 import '../imports/api/methods';
-
-import './datatransfer';
 
 import './datamigration';
 

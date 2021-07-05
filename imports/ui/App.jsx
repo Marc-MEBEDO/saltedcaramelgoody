@@ -3,10 +3,10 @@ import React, { useEffect } from 'react';
 import Spin from 'antd/lib/spin';
 
 import { LoginForm } from '/imports/ui/LoginForm';
-import { SiteLayout } from '/imports/ui/SiteLayout';
+import { DefaultLayout } from './DefaultLayout';
 import { useAccount, useRoles } from '../client/trackers';
 
-export const App = ({content, refOpinion, refDetail, activeMenuKey, ...props}) => {
+export const App = ({content, params, ...props}) => {
     const { currentUser, isLoggedIn, accountsReady } = useAccount();
     const { roles, rolesLoading } = useRoles();
 
@@ -30,16 +30,8 @@ export const App = ({content, refOpinion, refDetail, activeMenuKey, ...props}) =
     }
 
     return (
-        <SiteLayout 
-            activeMenuKey={activeMenuKey}
-            refOpinion={refOpinion}
-            refDetail={refDetail}
-            currentUser={currentUser}
-        >
-            {
-                //content || null
-                React.createElement(content || null, { refOpinion, refDetail, currentUser })
-            }
-        </SiteLayout>
+        <DefaultLayout>
+            { React.createElement(content || null, { params, currentUser }) }
+        </DefaultLayout>
     );
 }   

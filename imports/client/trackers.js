@@ -11,6 +11,9 @@ import { Layouttypes } from '../api/collections/layouttypes';
 import { OpinionPdfs } from '../api/collections/opinion-pdfs';
 import { Avatars } from '../api/collections/avatars';
 
+import { Products } from '../coreapi/collections/products';
+import { Mods } from '../coreapi/collections/mods';
+
 export const useOpinionSubscription = id => useTracker( () => {
     const subscription = Meteor.subscribe('opinions', id)
     return !subscription.ready();
@@ -401,3 +404,97 @@ export const useAvatar = userId => useTracker( () => {
         false
     ];
 }, [userId]);
+
+
+
+
+/**
+ * Load the Products that are shared with the current user
+ * 
+ * @param {String} userId   Specifies the user
+ */
+ export const useProducts = () => useTracker( () => {
+    const noDataAvailable = [ [] /*products*/ , true /*loading*/];
+
+    if (!Meteor.user()) {
+        return noDataAvailable;
+    }
+    const handler = Meteor.subscribe('products');
+
+    if (!handler.ready()) { 
+        return noDataAvailable;
+    }
+
+    const products = Products.find({}, { sort: { position: 1 } }).fetch();
+
+    return [ products, false ];
+});
+
+/**
+ * Lese das angegeben Produkt für den aktuellen Benutzer
+ * 
+ * @param {String} userId   Specifies the user
+ */
+ export const useProduct = (productId) => useTracker( () => {
+    const noDataAvailable = [ null /*product*/ , true /*loading*/];
+
+    if (!Meteor.user()) {
+        return noDataAvailable;
+    }
+    const handler = Meteor.subscribe('product', productId);
+
+    if (!handler.ready()) { 
+        return noDataAvailable;
+    }
+
+    const product = Products.findOne(productId);
+
+    return [ product, false ];
+});
+
+
+/**
+ * Lese alle Module zu einem bestimmten Produkt
+ * 
+ * @param {String} userId   Specifies the user
+ */
+ export const useModulesByProduct = productId => useTracker( () => {
+    const noDataAvailable = [ [] /*modules*/ , true /*loading*/];
+
+    if (!Meteor.user()) {
+        return noDataAvailable;
+    }
+    const handler = Meteor.subscribe('modules', productId);
+
+    if (!handler.ready()) { 
+        return noDataAvailable;
+    }
+
+    const mods = Mods.find({ productId }, { sort: { position: 1 } }).fetch();
+
+    return [ mods, false ];
+}, [productId]);
+
+/** 
+ * Lese das angegeben Modul
+ * 
+ * @param {String} userId   Specifies the user
+ */
+ export const useModule = moduleId => useTracker( () => {
+    const noDataAvailable = [ null /*module*/ , true /*loading*/];
+
+    if (!Meteor.user()) {
+        return noDataAvailable;
+    }
+    const handler = Meteor.subscribe('module', moduleId);
+
+    if (!handler.ready()) { 
+        return noDataAvailable;
+    }
+
+    const mod = Mods.findOne(moduleId);
+
+    return [ mod, false ];
+}, [moduleId]);
+
+

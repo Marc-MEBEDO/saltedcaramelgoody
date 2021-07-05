@@ -1,6 +1,6 @@
 import { OpinionDetails } from '/imports/api/collections/opinionDetails';
 
-const checkChildrenRecursive = (id, by, property, propertyBy) => {
+/*const checkChildrenRecursive = (id, by, property, propertyBy) => {
     OpinionDetails.find({
         $and: [
             { refParentDetail: id },
@@ -43,4 +43,4 @@ OpinionDetails.find({
 }, { fields: { _id: 1 }}).fetch().map( detail => detail._id ).forEach( id => {
     checkChildrenRecursive(id, id, 'finallyRemoved', 'finallyRemovedBy')
 });
-console.log('Done.');
+console.log('Done.');*/

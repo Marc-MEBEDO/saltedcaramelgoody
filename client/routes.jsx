@@ -6,11 +6,11 @@ import { App } from '/imports/ui/App';
 
 
 import { Home } from '../imports/ui/Home';
+import { Dashboard } from '../imports/ui/Dashboard';
+import { Record } from '../imports/ui/Record';
+
 import { InfoForm } from '../imports/ui/Info';
-import { ActivitiesForm } from '../imports/ui/ActivitiesForm';
-import { OpinionsForm } from '../imports/ui/OpinionsForm';
-//import { OpinionsDetailsForm } from '../imports/ui/OpinionsDetailsForm';
-import { OpinionsDetailsForm } from '../imports/ui/OpinionsDetailsForm';
+
 import { AppState } from '../imports/client/AppState';
 import { VerifyEMail } from '../imports/ui/components/VerifyEMail';
 import { UserProfileForm } from '../imports/ui/components/user-profile-form';
@@ -133,49 +133,40 @@ FlowRouter.route('/info', {
     },
 });
 
-FlowRouter.route('/activities', {
-    name: 'activities.show',
-    action() {
+FlowRouter.route('/dashboards/:productId/:moduleId', {
+    name: 'dahsboard',
+    action(params, queryParams) {
         mount(App, {
-            content: ActivitiesForm,
-            authenticatedRoute: true
+            content: Dashboard,
+            authenticatedRoute: true,
+            params,
+            queryParams
         });
     },
 });
 
-FlowRouter.route('/opinions', {
-    name: 'opinions.show',
-    action() {
+FlowRouter.route('/records/:productId/:moduleId/new', {
+    name: 'create-module-record',
+    action(params, queryParams) {
         mount(App, {
-            content: OpinionsForm,
-            activeMenuKey: 'OPINIONS',
-            authenticatedRoute: true
+            content: Record,
+            authenticatedRoute: true,
+            params,
+            queryParams,
+            mode: 'SHOW'
         });
     },
 });
 
-FlowRouter.route('/opinions/:id', {
-    name: 'opinion.detail',
-    action({ id }) {
+FlowRouter.route('/records/:productId/:moduleId/:recordId', {
+    name: 'create-module-record',
+    action(params, queryParams) {
         mount(App, {
-            content: OpinionsDetailsForm,
-            activeMenuKey: 'OPINIONS',
-            refOpinion: id,
-            refDetail: null,
-            authenticatedRoute: true
-        });
-    },
-});
-
-FlowRouter.route('/opinions/:id/:refDetail', {
-    name: 'opinion.detail.show',
-    action({ id, refDetail }) {
-        mount(App, {
-            content: OpinionsDetailsForm,
-            activeMenuKey: 'OPINIONS',
-            refOpinion: id,
-            refDetail: refDetail,
-            authenticatedRoute: true
+            content: Record,
+            authenticatedRoute: true,
+            params,
+            queryParams,
+            mode: 'NEW'
         });
     },
 });
