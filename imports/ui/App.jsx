@@ -6,7 +6,7 @@ import { LoginForm } from '/imports/ui/LoginForm';
 import { DefaultLayout } from './DefaultLayout';
 import { useAccount, useRoles } from '../client/trackers';
 
-export const App = ({content, params, ...props}) => {
+export const App = ({content, ...props}) => {
     const { currentUser, isLoggedIn, accountsReady } = useAccount();
     const { roles, rolesLoading } = useRoles();
 
@@ -30,8 +30,8 @@ export const App = ({content, params, ...props}) => {
     }
 
     return (
-        <DefaultLayout currentUser={currentUser} params={params} >
-            { React.createElement(content || null, { params, currentUser }) }
+        <DefaultLayout currentUser={currentUser} { ...props } >
+            { React.createElement(content || null, { ...props }) }
         </DefaultLayout>
     );
 }   

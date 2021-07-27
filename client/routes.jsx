@@ -153,7 +153,8 @@ FlowRouter.route('/records/:productId/:moduleId/new', {
             authenticatedRoute: true,
             params,
             queryParams,
-            mode: 'SHOW'
+            mode: 'NEW',
+            showActivities: true
         });
     },
 });
@@ -166,7 +167,8 @@ FlowRouter.route('/records/:productId/:moduleId/:recordId', {
             authenticatedRoute: true,
             params,
             queryParams,
-            mode: 'NEW'
+            mode: 'SHOW',
+            showActivities: true
         });
     },
 });

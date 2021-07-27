@@ -35,10 +35,10 @@ export const ListActivities = ( { productId, moduleId, recordId, currentUser, on
     useEffect( () => {
         // check for hash in route
         const hash = FlowRouter.current().context.hash;
-        if (!hash)
+        if (!hash) {
             // scroll to end of list
-            activitiesEndRef.current.scrollIntoView(); //{ behavior: "smooth" })
-        else {
+            //activitiesEndRef.current.scrollIntoView(); //{ behavior: "smooth" })
+        } else {
             // scroll to hashed item
             const el = $('#' + hash).get(0);
             if (el) el.scrollIntoView();

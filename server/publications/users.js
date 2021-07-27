@@ -9,6 +9,8 @@ Meteor.publish('currentUser', function publishCurrentUser() {
 });
 
 Meteor.publish('avatar', function publishAvatar(userId) {
+    if (userId === null) return null;
+
     check(userId, String);
 
     if (!this.userId) return null;

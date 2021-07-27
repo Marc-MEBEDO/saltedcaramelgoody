@@ -68,8 +68,9 @@ const ProductsMenu = ({theme='light', mode, displayLogo}) => {
 }
 
 export const DefaultLayout = props => {
-    const { currentUser, params } = props;
-
+    const { currentUser, params, showActivities = false } = props;
+    
+    console.log(props)
     return (
         <Layout>
             <MediaQuery showAtPhone >
@@ -104,37 +105,29 @@ export const DefaultLayout = props => {
                     </div>
                 </Content>
                 
-                { !(params && params.productId && params.modulId) 
+                { !showActivities
                     ? null
-                    :
-                        <MediaQuery showAtTablet showAtDesktop >
-                            <Sider 
-                                /*style={{
-                                    overflow: 'hidden auto',
-                                    height: '100vh',
-                                    position: 'fixed',
-                                    right: 0,
-                                }}*/
-                                theme="light" width="300" collapsible collapsedWidth="0" reverseArrow
-                            >
-                                <Content style={{marginTop:60}}>
-                                    <ListActivities 
-                                        productId={params.productId}
-                                        modulId={params.modulId}
-                                        currentUser={currentUser}
-                                    />
-                                </Content>
-                            </Sider>
-                        </MediaQuery>
+                    : <MediaQuery showAtTablet showAtDesktop >
+                        <Sider 
+                            /*style={{
+                                overflow: 'hidden auto',
+                                height: '100vh',
+                                position: 'fixed',
+                                right: 0,
+                            }}*/
+                            theme="light" width="300" collapsible collapsedWidth="0" reverseArrow
+                        >
+                            <Content style={{marginTop:60}}>
+                                <ListActivities 
+                                    productId={params.productId}
+                                    modulId={params.modulId}
+                                    currentUser={currentUser}
+                                />
+                            </Content>
+                        </Sider>
+                    </MediaQuery>
                 }
             </Layout>
-
-            
         </Layout>
     );
 }
-
-/*<Footer style={{ textAlign: 'center' }}>
-MEBEDO Akademie GmbH, MEBEDO Consulting GmbH ©2021
-</Footer>*/
-
