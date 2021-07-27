@@ -104,25 +104,29 @@ export const DefaultLayout = props => {
                     </div>
                 </Content>
                 
-                <MediaQuery showAtTablet showAtDesktop >
-                    <Sider 
-                        /*style={{
-                            overflow: 'hidden auto',
-                            height: '100vh',
-                            position: 'fixed',
-                            right: 0,
-                        }}*/
-                        theme="light" width="300" collapsible 
-                    >
-                        <Content style={{marginTop:60}}>
-                            <ListActivities 
-                                productId={params.productId}
-                                modulId={params.modulId}
-                                currentUser={currentUser}
-                            />
-                        </Content>
-                    </Sider>
-                </MediaQuery>
+                { !(params && params.productId && params.modulId) 
+                    ? null
+                    :
+                        <MediaQuery showAtTablet showAtDesktop >
+                            <Sider 
+                                /*style={{
+                                    overflow: 'hidden auto',
+                                    height: '100vh',
+                                    position: 'fixed',
+                                    right: 0,
+                                }}*/
+                                theme="light" width="300" collapsible collapsedWidth="0" reverseArrow
+                            >
+                                <Content style={{marginTop:60}}>
+                                    <ListActivities 
+                                        productId={params.productId}
+                                        modulId={params.modulId}
+                                        currentUser={currentUser}
+                                    />
+                                </Content>
+                            </Sider>
+                        </MediaQuery>
+                }
             </Layout>
 
             

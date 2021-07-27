@@ -136,12 +136,6 @@ export const ListActivities = ( { productId, moduleId, recordId, currentUser, on
                 <div style={{float:'left'}}>
                     <strong>Aktivitäten</strong>
                 </div>
-                <div
-                    style={{float:'right'}}
-                    onClick={ e => onClose()}
-                >
-                    X
-                </div>
             </div>            
 
             <List
