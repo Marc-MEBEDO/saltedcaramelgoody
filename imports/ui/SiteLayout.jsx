@@ -137,26 +137,23 @@ export const SiteLayout = props => {
                 
             </Layout>
             
-            { !props.refOpinion 
-                ? null 
-                : <Sider 
-                    style={{
-                        overflow: 'hidden auto',
-                        height: '100vh',
-                        position: 'fixed',
-                        right: 0,
-                    }}
-                    theme="light" width="300" collapsible collapsed={activitiesCollapsed} collapsedWidth="0"
-                >
-                    
-                    <ListActivities 
-                        onClose={ toggleActivitiesSider }
-                        refOpinion={props.refOpinion} 
-                        refDetail={props.refDetail} 
-                        currentUser={props.currentUser} 
-                    />
-                </Sider>
-            }
+           <Sider 
+                style={{
+                    overflow: 'hidden auto',
+                    height: '100vh',
+                    position: 'fixed',
+                    right: 0,
+                }}
+                theme="light" width="300" collapsible collapsed={activitiesCollapsed} collapsedWidth="0"
+            >
+                <div>Irgenwas....</div>
+                <ListActivities 
+                    onClose={ toggleActivitiesSider }
+                    refOpinion={props.refOpinion} 
+                    refDetail={props.refDetail} 
+                    currentUser={props.currentUser} 
+                />
+            </Sider>
 
             <UserActivitiesDrawer 
                 visible={ showUserActivies }

@@ -104,5 +104,7 @@ export const ModLayout = ({ product, mod, layoutName = 'default', mode }) => {
     // aktuell wird nur das default-layout unterstützt
     const layout = mod.layouts && (mod.layouts[layoutName] || mod.layouts.default);
     
-    return <LayoutElements elements={layout.elements} mod={mod} />;
+    return (
+        <LayoutElements elements={layout.elements} mod={mod} />
+    )
 }

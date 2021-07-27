@@ -9,10 +9,10 @@ export const Urlaubsanspruch = {
     faIconName: 'fa-fw fas fa-globe',
 
     fields: {
-        title: { type: 'String', maxLength: 200, ...defaultSecurityLevel },
-        datumVon: { type: 'String', maxLength: 12, ...defaultSecurityLevel },
-        datumBis: { type: 'String', maxLength: 12, ...defaultSecurityLevel },
-        urlaubsanspruch: { type: 'String', maxLength: 12, ...defaultSecurityLevel },
+        title: { type: 'String', ...defaultSecurityLevel },
+        datumVon: { type: 'String', ...defaultSecurityLevel },
+        datumBis: { type: 'String', ...defaultSecurityLevel },
+        urlaubsanspruch: { type: 'String', ...defaultSecurityLevel },
     },
 
     actions: {

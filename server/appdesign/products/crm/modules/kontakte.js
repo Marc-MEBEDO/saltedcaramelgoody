@@ -8,7 +8,7 @@ export const Kontakte = {
     faIconName: 'fa-fw far fa-address-card',
 
     fields: {
-        title: { type: 'String', maxLength: 200, ...defaultSecurityLevel },
+        title: { type: 'String', ...defaultSecurityLevel },
     },
 
     actions: {

@@ -30,7 +30,7 @@ export const App = ({content, params, ...props}) => {
     }
 
     return (
-        <DefaultLayout>
+        <DefaultLayout currentUser={currentUser} params={params} >
             { React.createElement(content || null, { params, currentUser }) }
         </DefaultLayout>
     );

@@ -11,7 +11,7 @@ export const FieldSchema = new SimpleSchema({
         type: String,
         label: 'Feldtyp'
     },
-    maxLength: {
+    /*maxLength: {
         type: SimpleSchema.Integer,
         label: 'Feldlänge (String)',
         optional: true,
@@ -20,7 +20,7 @@ export const FieldSchema = new SimpleSchema({
         type: SimpleSchema.Integer,
         label: 'Max Einträge für Type Array',
         optional: true,
-    },
+    },*/
     rules: {
         type: Array,
         label: 'Regeln',

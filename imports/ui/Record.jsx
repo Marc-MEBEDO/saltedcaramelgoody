@@ -8,6 +8,9 @@ import Affix from 'antd/lib/affix';
 import Form from 'antd/lib/form';
 import message from 'antd/lib/message';
 
+import Layout from 'antd/lib/layout';
+const { Header, Content, Footer, Sider } = Layout;
+
 const { useForm } = Form;
 
 import { ModLayout } from './ModLayout';
@@ -29,9 +32,44 @@ export const Record = ({ params, mode }) => {
     // aktuell wird nur das default-layout unterstützt
     const layout = mod.layouts && mod.layouts.default;
     
-    const saveRecord = e => {
+    const insertRecord = e => {
         recordForm.validateFields().then( values => {
-            console.log(values);
+            const data = {
+                productId: product._id,
+                moduleId: mod._id,
+                values
+            }
+
+            Meteor.call('modules.insertRecord', data, (err, res) => {
+                if (err) {
+                    message.error('Es ist ein unbekannter Systemfehler aufgetreten. Bitte wenden Sie sich an den Systemadministrator.');
+                }
+
+                const { status, messageText } = res;
+
+                if (status === 'critical') {
+                    message.error('Ein nicht Systemfehler ist aufgetreten: ' + messageText);
+                }
+
+                if (status === 'abort') {
+                    message.error(messageText);
+                }
+
+                if (status === 'warning') {
+                    message.warning(messageText);
+                }
+
+                if (status === 'success') {
+                    message.success(messageText);
+                }
+
+                if (status === 'info') {
+                    message.info(messageText);
+                }
+
+                // or okay ==> do nothing;
+            });
+
         }).catch(errorInfo => {
             //console.log(errorInfo);
             message.error('Es ist ein Fehler beim Speichern der Daten aufgetreten. Bitte überprüfen Sie Ihre Eingaben.');
@@ -62,7 +100,7 @@ export const Record = ({ params, mode }) => {
                     tags={<Tag color="orange" style={{marginTop:8, display:'flex'}}>nicht gespeichert</Tag>}
                     extra={[
                         <Button key="2">Abbruch</Button>,
-                        <Button key="1" type="primary" onClick={saveRecord}>Speichern</Button>,
+                        <Button key="1" type="primary" onClick={insertRecord}>Speichern</Button>,
                     ]}
                     style={{borderBottom:'2px solid #e1e1e1', marginBottom:16}}
                 />
@@ -84,3 +122,19 @@ export const Record = ({ params, mode }) => {
         </Fragment>
     );
 }
+
+/*
+<Sider style={{
+    overflow: 'hidden auto',
+    //height: '100vh',
+    position: 'fixed',
+    right: 0,
+}}
+theme="light"
+width="300"
+collapsible
+collapsedWidth="0"
+>
+<div>Mit irgendeinem Content</div>    
+</Sider>
+*/

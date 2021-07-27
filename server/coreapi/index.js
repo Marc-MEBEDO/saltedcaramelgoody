@@ -128,6 +128,12 @@ export const registerModule = m => {
         })
     }
 
+
+    if (m.methods) {
+        if (typeof m.methods.onBeforeInsert === 'function') m.methods.onBeforeInsert = m.methods.onBeforeInsert.toString();
+    }
+
+
     let mod = Mods.findOne(moduleId);
     console.log(m);
     if (mod) {

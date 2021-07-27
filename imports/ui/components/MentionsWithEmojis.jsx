@@ -129,6 +129,7 @@ export class MentionsWithEmojis extends React.Component {
                 loading={loading}
                 onSearch={onSearch} onSelect={onSelect} onChange={onChange}
                 filterOption={filterEmojis}
+                disabled={this.props.disabled || false}
             >
                 {prefix == '@' ?
                     users.map(({ userId, firstName, lastName }) => (

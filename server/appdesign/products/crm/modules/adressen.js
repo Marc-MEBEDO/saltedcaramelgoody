@@ -2,7 +2,7 @@ import { defaultSecurityLevel } from './../../../security';
 
 import { ctStringInput, ctCollapsible, ctInlineCombination } from '../../../../../imports/coreapi/controltypes';
 
-export const Adressen = { 
+export const Adressen = {
     _id: "adressen",
 
     title: "Adressen", 
@@ -40,27 +40,31 @@ export const Adressen = {
             }
         ] , ...defaultSecurityLevel },
 
-        strasse: { type: 'String', maxLength: 200, ...defaultSecurityLevel },
-        plz: { title: 'PLZ', type: 'String', maxLength: 10, ...defaultSecurityLevel },
-        ort: { type: 'String', maxLength: 10, ...defaultSecurityLevel },
+        strasse: { type: 'String', ...defaultSecurityLevel },
+        plz: { title: 'PLZ', type: 'String', ...defaultSecurityLevel },
+        ort: { type: 'String', ...defaultSecurityLevel },
 
-        firmaRechnung: { title: 'Firma', type: 'ArrayOfStrings', maxLength:50, maxItems: 3, ...defaultSecurityLevel },
-        strasseRechnung: { title: 'Straße', type: 'String', maxLength: 200, ...defaultSecurityLevel },
-        plzRechnung: { title: 'PLZ', type: 'String', maxLength: 10, ...defaultSecurityLevel },
-        ortRechnung: { title: 'Ort', type: 'String', maxLength: 10, ...defaultSecurityLevel },
+        firmaRechnung: { title: 'Firma', type: 'ArrayOfStrings', ...defaultSecurityLevel },
+        strasseRechnung: { title: 'Straße', type: 'String', ...defaultSecurityLevel },
+        plzRechnung: { title: 'PLZ', type: 'String', ...defaultSecurityLevel },
+        ortRechnung: { title: 'Ort', type: 'String', ...defaultSecurityLevel },
 
-        eMailRechnung: { title: 'E-Mailadresse für Rechnungsversandt', type: 'String', maxLength: 200, ...defaultSecurityLevel },
+        eMailRechnung: { title: 'E-Mailadresse für Rechnungsversandt', type: 'String', ...defaultSecurityLevel },
 
-        telefon: { type: 'String', maxLength: 200, ...defaultSecurityLevel },
-        telefax: { type: 'String', maxLength: 200, ...defaultSecurityLevel },
-        website: { type: 'String', maxLength: 200, ...defaultSecurityLevel },
-        email: { type: 'String', maxLength: 200, ...defaultSecurityLevel },
+        telefon: { type: 'String', ...defaultSecurityLevel },
+        telefax: { type: 'String', ...defaultSecurityLevel },
+        website: { type: 'String', ...defaultSecurityLevel },
+        email: { type: 'String', ...defaultSecurityLevel },
+        
+        haarfarbe: { type: 'String', ...defaultSecurityLevel },
     },
 
     layouts: {
         default: {
             title: 'Standard-layout',
             description: 'dies ist ein universallayout für alle Operationen',
+
+            //visibleBy: ['EMPLOYEE'],
             
             elements: [
                 { field: 'title', controlType: ctStringInput },
@@ -75,14 +79,14 @@ export const Adressen = {
                     ]},
                 ]},
 
-                { title: 'Kommunikation', controlType: ctCollapsible, collapsedByDefault: true, elements: [
+                { title: 'Kommunikation', controlType: ctCollapsible, collapsedByDefault: false, elements: [
                     {  field: 'telefon',  controlType: ctStringInput },
                     {  field: 'telefax',  controlType: ctStringInput },
                     {  field: 'email',  title: 'E-Mailadresse', controlType: ctStringInput },
                     {  field: 'website',  controlType: ctStringInput },
                 ]},
 
-                { title: 'Kaufmännisch', controlType: ctCollapsible, collapsedByDefault: true, elements: [
+                { title: 'Kaufmännisch', controlType: ctCollapsible, collapsedByDefault: false, elements: [
                     { title: 'abweichende Rechnungsanschrift', controlType: ctCollapsible, elements: [
                         {  field: 'firmaRechnung',  controlType: ctStringInput },
                         {  field: 'strasseRechnung',  controlType: ctStringInput },
@@ -93,11 +97,28 @@ export const Adressen = {
                     ]},
 
                     {  field: 'eMailRechnung',  controlType: ctStringInput },
+                    {  field: 'haarfarbe',  controlType: ctStringInput },
                 ]},
-
-    
             ]
-        }
+        },
+        extern: {
+            title: 'Adresslayout für Kundenansicht',
+            description: 'blablabal',
+            
+            //visibleBy: ['EXTERNAL'],
+
+            elements: [
+
+            ],
+        },
+
+        /*layoutPicker: function(data, currentUser) {
+            //if (currentUser.email == 'tomaschoff@mebedo-ac.de' && )
+            if (data.firma === 'Hallo Welt') 
+                return 'default';
+
+            return 'extern'
+        }*/
     },
 
     actions: {
@@ -113,4 +134,31 @@ export const Adressen = {
             onExecute: { redirect: '/records/crm/adressen/new' }
         },
     },
+
+    methods: {
+        onBeforeInsert: ({ firma2 }) => {
+            if ( !firma2 ) {
+                return { status: 'abort', messageText: 'Bitte geben Sie einen Wert im Feld Firma2 ein.' }
+            }
+            
+            if ( firma2.toLowerCase() !== 'hallo welt') {
+                return { status: 'abort', messageText: 'Im Feld Firma 2 muß der Text "Hallo Welt" stehen.' }
+            }
+
+            if (firma2 === 'HALLO welt') {
+                firma2 = 'Hallo Welt';
+                return { status: 'info', messageText: 'Der Wert im Feld Firma2 wurde automatisch zu "Hallo Welt" korrigiert.' }
+            }
+            
+
+            return { status: 'okay' };
+        },
+
+        onAfterInsert: values => {
+
+            CoreApi.SendMail (
+                
+            )
+        }
+    }
 }

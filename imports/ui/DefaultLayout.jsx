@@ -6,6 +6,8 @@ import Spin from 'antd/lib/spin';
 const { Header, Content, Footer, Sider } = Layout;
 const { SubMenu } = Menu;
 
+import { ListActivities } from './ListActivities';
+
 import { FlowRouter } from 'meteor/kadira:flow-router';
 
 import { useProducts, useModulesByProduct } from '../client/trackers';
@@ -66,6 +68,8 @@ const ProductsMenu = ({theme='light', mode, displayLogo}) => {
 }
 
 export const DefaultLayout = props => {
+    const { currentUser, params } = props;
+
     return (
         <Layout>
             <MediaQuery showAtPhone >
@@ -100,10 +104,33 @@ export const DefaultLayout = props => {
                     </div>
                 </Content>
                 
-                <Footer style={{ textAlign: 'center' }}>
-                    MEBEDO Akademie GmbH, MEBEDO Consulting GmbH ©2021
-                </Footer>
+                <MediaQuery showAtTablet showAtDesktop >
+                    <Sider 
+                        /*style={{
+                            overflow: 'hidden auto',
+                            height: '100vh',
+                            position: 'fixed',
+                            right: 0,
+                        }}*/
+                        theme="light" width="300" collapsible 
+                    >
+                        <Content style={{marginTop:60}}>
+                            <ListActivities 
+                                productId={params.productId}
+                                modulId={params.modulId}
+                                currentUser={currentUser}
+                            />
+                        </Content>
+                    </Sider>
+                </MediaQuery>
             </Layout>
+
+            
         </Layout>
     );
 }
+
+/*<Footer style={{ textAlign: 'center' }}>
+MEBEDO Akademie GmbH, MEBEDO Consulting GmbH ©2021
+</Footer>*/
+

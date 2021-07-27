@@ -21,19 +21,16 @@ import { hasPermission } from '../api/helpers/roles';
 import { FlowRouter } from 'meteor/kadira:flow-router';
 import { Expert } from './components/Expert';
 
-export const ListActivities = ( { refOpinion, refDetail, currentUser, onClose } ) => {
-    const [ opinion, opinionIsLoading ] = useOpinion(refOpinion);
-    const [ activities, activitiesLoading ] = useActivities(refOpinion, FlowRouter.getQueryParam('activitiesBy') || refDetail);
+export const ListActivities = ( { productId, moduleId, recordId, currentUser, onClose } ) => {
+    const refOpinion="";
+    //const [ opinion, opinionIsLoading ] = useOpinion(refOpinion);
+    let [ activities, activitiesLoading ] = useActivities(productId, moduleId, recordId);
     const [form] = Form.useForm();
     const activitiesEndRef = useRef(null);
 
     const [ currentTime, setTime ] = useState(new Date());
     const [ working, setWorking ] = useState(false);
     const [ canPostMessage, setCanPostMessage ] = useState(false);
-
-    const parentRefDetail = refDetail;
-    // We have to use the "wright" refDetail, so that a user-post will be stored to wright detail
-    refDetail = FlowRouter.getQueryParam('activitiesBy') || refDetail;
 
     useEffect( () => {
         // check for hash in route
@@ -57,11 +54,11 @@ export const ListActivities = ( { refOpinion, refDetail, currentUser, onClose } 
     }, [activities/*, FlowRouter.getQueryParam('activitiesBy')*/]);
 
 
-    if (currentUser && !opinionIsLoading && opinion) {
+    if (currentUser) {
         let post = false,
             perm = { currentUser };
 
-        const sharedWithUser = opinion.sharedWith.find( shared => shared.user.userId === currentUser._id );
+        const sharedWithUser = null; //opinion.sharedWith.find( shared => shared.user.userId === currentUser._id );
         
         if (sharedWithUser && sharedWithUser.role) {
             perm.sharedRole = sharedWithUser.role;
@@ -79,7 +76,7 @@ export const ListActivities = ( { refOpinion, refDetail, currentUser, onClose } 
             setTimeout( _ => {
                 const activitiesBy = FlowRouter.getQueryParam('activitiesBy') || null;
 
-                Meteor.call('activities.postmessage', refOpinion, refDetail, parentRefDetail, activitiesBy, values.message, (err, res) => {
+                Meteor.call('activities.postmessage', values.message, (err, res) => {
                     setWorking(false);
                     
                     if (err) {
@@ -124,6 +121,15 @@ export const ListActivities = ( { refOpinion, refDetail, currentUser, onClose } 
         );
     }
 
+    activitiesLoading = false;
+    activities = [
+        {   _id: "new", 
+            createdAt: new Date(), 
+            createdBy: { firstName: currentUser.userData.firstName, lastName: currentUser.userData.lastName },
+            message: 'erstellt aktuell eine neue Adresse'
+        }
+    ];
+
     return (
         <div className="mbac-activities-sider">
             <div style={{height:55}}>
@@ -136,7 +142,7 @@ export const ListActivities = ( { refOpinion, refDetail, currentUser, onClose } 
                 >
                     X
                 </div>
-            </div>
+            </div>            
 
             <List
                 className="comment-list"
@@ -190,10 +196,11 @@ export const ListActivities = ( { refOpinion, refDetail, currentUser, onClose } 
                         <MentionsWithEmojis
                             method="opinion.getSharedWith"
                             methodParams={refOpinion}
+                            disabled
                         />
                     </Form.Item>
                     <Form.Item>
-                        <Button htmlType="submit" loading={working} disabled={working} onClick={postMessage} type="primary">
+                        <Button htmlType="submit" loading={working} disabled={true} onClick={postMessage} type="primary">
                             Absenden
                         </Button>
                     </Form.Item>
