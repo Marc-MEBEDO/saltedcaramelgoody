@@ -179,6 +179,7 @@ export const registerProduct = (p, index) => {
         p.sharedWithRoles = ['ADMIN'];
 
         Products.insert(p);
+        product = p;
     }
 
     if (mods) {

@@ -6,6 +6,13 @@ export var moduleStores = {};
  * @param {String} mod Name des Modul, für den der Store (Collection) ermittelt werden soll
  * @returns {Object} Mongo.Collection
  */
-const getModuleStore = mod => {
-    return moduleStores[modName];
+export const getModuleStore = moduleId => {
+    let moduleStore = moduleStores[moduleId];
+        
+    if (!moduleStore) {
+        moduleStores[moduleId] = new Mongo.Collection(moduleId);
+        moduleStore = moduleStores[moduleId];
+    }
+
+    return moduleStore;
 }

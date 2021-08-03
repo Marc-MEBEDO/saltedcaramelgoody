@@ -4,6 +4,7 @@ import './layouttypes';
 
 import './products';
 import './mods';
+import './records';
 
 import './roles';
 import './userActivities';

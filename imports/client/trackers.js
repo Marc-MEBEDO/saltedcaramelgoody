@@ -11,10 +11,10 @@ import { Avatars } from '../api/collections/avatars';
 import { Products } from '../coreapi/collections/products';
 import { Mods } from '../coreapi/collections/mods';
 
-export const useOpinionSubscription = id => useTracker( () => {
-    const subscription = Meteor.subscribe('opinions', id)
-    return !subscription.ready();
-});
+import { getModuleStore } from '../coreapi';
+
+const notAuthorized = [ [] /*data*/, false /*loadin*/ ]
+const noDataAvailable = [ [] /*data*/ , true /*loading*/ ];
 
 /**
  * Reactive current User Account
@@ -44,10 +44,8 @@ export const useAccount = () => useTracker(() => {
  * 
  */
 export const useRoles = () => useTracker( () => {
-    const noDataAvailable = [ [] /*Roles*/ , true /*loading*/];
-
     if (!Meteor.user()) {
-        return noDataAvailable;
+        return notAuthorized;
     }
     const subscription = Meteor.subscribe('roles');
 
@@ -64,8 +62,7 @@ export const useRoles = () => useTracker( () => {
  * Reactive Layouttypes
  * 
  */
-export const useLayouttypes = () => useTracker( () => {
-    const noDataAvailable = [ [] /*Layouttypes*/ , true /*loading*/];
+/*export const useLayouttypes = () => useTracker( () => {
 
     if (!Meteor.user()) {
         return noDataAvailable;
@@ -79,8 +76,7 @@ export const useLayouttypes = () => useTracker( () => {
     const layouttypes = Layouttypes.find({}).fetch();
 
     return [layouttypes, false];
-});
-
+});*/
 
 
 /**
@@ -89,27 +85,21 @@ export const useLayouttypes = () => useTracker( () => {
  * @param {String} refOpinion   id of the Opinion
  * @param {String} refDetail    id of the OpinionDetail
  */
-export const useActivities = (refOpinion, refDetail) => useTracker( () => {
-    const noDataAvailable = [ [] /*activities*/ , true /*loading*/];
-
+export const useActivities = (productId, moduleId, recordId) => useTracker( () => {
     if (!Meteor.user()) {
-        return noDataAvailable;
+        return notAuthorized;
     }
-    const subscription = Meteor.subscribe('activities', { refOpinion, refDetail });
+    const subscription = Meteor.subscribe('activities', { productId, moduleId, recordId });
 
     if (!subscription.ready()) {
         return noDataAvailable;
     }
 
-    let activities;
-    if (refDetail) {
-        activities = Activities.find({ refDetail }, { sort: { createdAt: 1}}).fetch();
-    } else {
-        activities = Activities.find({ refOpinion, refDetail: null }, { sort: { createdAt: 1} }).fetch();
-    }
+
+    const activities = Activities.find({ productId, moduleId, recordId }, { sort: { createdAt: 1}}).fetch();
 
     return [ activities, false ];
-}, [refOpinion, refDetail]);
+}, [productId, moduleId, recordId]);
 
 
 /**
@@ -117,10 +107,8 @@ export const useActivities = (refOpinion, refDetail) => useTracker( () => {
  * 
  */
 export const useUserActivityCount = () => useTracker( () => {
-    const noDataAvailable = [ null , true /*loading*/];
-
     if (!Meteor.user()) {
-        return noDataAvailable;
+        return [ null, false ];
     }
     const subscription = Meteor.subscribe('userActivities');
 
@@ -140,10 +128,8 @@ export const useUserActivityCount = () => useTracker( () => {
  * @param {String} refDetail    id of the OpinionDetail
  */
 export const useUserActivities = ({orderBy}) => useTracker( () => {
-    const noDataAvailable = [ [] /*activities*/ , true /*loading*/];
-
     if (!Meteor.user()) {
-        return noDataAvailable;
+        return notAuthorized;
     }
     const subscription = Meteor.subscribe('userActivities');
 
@@ -160,16 +146,14 @@ export const useUserActivities = ({orderBy}) => useTracker( () => {
 
 
 /**
- * Load the userActivities reactivly
+ * Load the Images reactivly
  * 
  * @param {String} refOpinion   id of the Opinion
  * @param {String} refDetail    id of the OpinionDetail
  */
-export const useImages = refImages => useTracker( () => {
-    const noDataAvailable = [ [] /*images*/ , true /*loading*/];
-
+/*export const useImages = refImages => useTracker( () => {
     if (!Meteor.user()) {
-        return noDataAvailable;
+        return notAuthorized;
     }
     const subscription = Meteor.subscribe('images', refImages);
 
@@ -198,7 +182,7 @@ export const useImages = refImages => useTracker( () => {
         }),
         false
     ];
-});
+});*/
 
 
 /**
@@ -315,5 +299,33 @@ export const useAvatar = userId => useTracker( () => {
 
     return [ mod, false ];
 }, [moduleId]);
+
+
+/** 
+ * Lesen des angegeben Datensatzes
+ * 
+ * @param {String} userId   Specifies the user
+ */
+ export const useRecord = (productId, moduleId, recordId, reloadRevision) => useTracker( () => {
+    if (!recordId) return [null, false];
+
+    const noDataAvailable = [ null /*record*/ , true /*loading*/];
+
+    if (!Meteor.user()) {
+        return notAuthorized;
+    }
+
+    const moduleStore = getModuleStore(moduleId);
+
+    const handler = Meteor.subscribe('record', { productId, moduleId, recordId });
+
+    if (!handler.ready()) { 
+        return noDataAvailable;
+    }
+
+    const doc = moduleStore.findOne(recordId);
+
+    return [ doc, false ];
+}, [productId, moduleId, recordId, reloadRevision]);
 
 

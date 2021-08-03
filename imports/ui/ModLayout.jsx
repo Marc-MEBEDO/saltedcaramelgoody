@@ -18,32 +18,34 @@ const getLabel = elem => {
     return (elem.noTitle ? '' : elem.title);
 }
 
-const LayoutElements = ({ elements, mod }) => {
+const LayoutElements = ({ elements, mod, mode }) => {
     return elements.map( (elem, index) => {
-        if (elem.controlType === ctStringInput ) return <StringInput key={index} elem={elem} mod={mod}/>
-        if (elem.controlType === ctDateInput ) return <DateInput key={index} elem={elem} mod={mod} />
+        if (elem.controlType === ctStringInput ) return <StringInput key={index} elem={elem} mod={mod} mode={mode} />
+        if (elem.controlType === ctDateInput ) return <DateInput key={index} elem={elem} mod={mod} mode={mode} />
         
-        if (elem.controlType === ctCollapsible ) return <Collapsible key={index} elem={elem} mod={mod} />
-        if (elem.controlType === ctInlineCombination ) return <InlineCombination key={index} elem={elem} mod={mod} />
+        if (elem.controlType === ctCollapsible ) return <Collapsible key={index} elem={elem} mod={mod} mode={mode} />
+        if (elem.controlType === ctInlineCombination ) return <InlineCombination key={index} elem={elem} mod={mod} mode={mode} />
         
         return null;
     });
 }
 
-const InlineCombination = ({ elem, mod }) => {
+const InlineCombination = ({ elem, mod, mode }) => {
     return (
         <Row className="ant-form-item" style={{ display: 'flex', flexFlow:'row wrap' }}>
             <Col span={4} className="ant-form-item-label">
                 <label>{getLabel(elem)}</label>
             </Col>
             <Col className="ant-form-item-control" style={{ display: 'flex', flexFlow:'row wrap' }}>
-                <LayoutElements elements={elem.elements} mod={mod} />
+                <LayoutElements elements={elem.elements} mod={mod} mode={mode} />
             </Col>
         </Row>
     )
 }
 
-const StringInput = ({ elem, mod }) => {
+const StringInput = ({ elem, mod, mode }) => {
+    console.log(mode);
+
     const { fields } = mod;
     let { rules } = fields[elem.field];
 
@@ -55,7 +57,6 @@ const StringInput = ({ elem, mod }) => {
             return r;
         });
     }
-    console.log(rules);
 
     return (
         <Form.Item 
@@ -63,12 +64,12 @@ const StringInput = ({ elem, mod }) => {
             name={elem.field}
             rules={rules}
         >
-            <Input />
+            <Input className={mode} disabled={mode==='SHOW'} />
         </Form.Item>
     )
 }
 
-const DateInput = ({ elem, mod }) => {   
+const DateInput = ({ elem, mod, mode }) => {   
     return (
         <Form.Item label={getLabel(elem)}>
             <DatePicker format='DD.MM.YYYY' />
@@ -76,28 +77,16 @@ const DateInput = ({ elem, mod }) => {
     )
 }
 
-const Collapsible = ({ elem, mod }) => {
+const Collapsible = ({ elem, mod, mode }) => {
     return (
         <Collapse defaultActiveKey={elem.collapsedByDefault ? ['1'] : null}
             style={{marginBottom:16}}
         >
             <Panel header={getLabel(elem)} key="1">
-                <LayoutElements elements={elem.elements} mod={mod} />
+                <LayoutElements elements={elem.elements} mod={mod} mode={mode} />
             </Panel>
         </Collapse>
     );
-    /*return (
-        <Row className="ant-form-item" style={{ display: 'flex', flexFlow:'row wrap' }}>
-            <Col span={4} className="ant-form-item-label"></Col>
-            <Col span={14} className="ant-form-item-control">
-                <Collapse defaultActiveKey={elem.collapsedByDefault ? ['1'] : null}>
-                    <Panel header={getLabel(elem)} key="1">
-                        <LayoutElements elements={elem.elements} />
-                    </Panel>
-                </Collapse>
-            </Col>
-        </Row>
-    );*/
 }
 
 export const ModLayout = ({ product, mod, layoutName = 'default', mode }) => {
@@ -105,6 +94,6 @@ export const ModLayout = ({ product, mod, layoutName = 'default', mode }) => {
     const layout = mod.layouts && (mod.layouts[layoutName] || mod.layouts.default);
     
     return (
-        <LayoutElements elements={layout.elements} mod={mod} />
+        <LayoutElements elements={layout.elements} mod={mod} mode={mode} />
     )
 }

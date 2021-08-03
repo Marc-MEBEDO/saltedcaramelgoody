@@ -740,3 +740,15 @@ span.mbac-user-mention {
 a[href="https://markerjs.com/"] {
     display: none !important;
 }
+
+
+// disabled inputs shown as simple label
+// wenn mode=SHOW
+.ant-input[disabled] {
+    &.SHOW {
+        border: none;
+        background-color: #fff;
+        font-weight: 600;
+        color: #666;
+    }
+}

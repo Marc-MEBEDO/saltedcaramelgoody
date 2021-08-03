@@ -23,7 +23,8 @@ import { Expert } from './components/Expert';
 
 export const ListActivities = ( { productId, moduleId, recordId, currentUser, onClose } ) => {
     const refOpinion="";
-    //const [ opinion, opinionIsLoading ] = useOpinion(refOpinion);
+
+    console.log(productId, moduleId, recordId);
     let [ activities, activitiesLoading ] = useActivities(productId, moduleId, recordId);
     const [form] = Form.useForm();
     const activitiesEndRef = useRef(null);
@@ -121,14 +122,16 @@ export const ListActivities = ( { productId, moduleId, recordId, currentUser, on
         );
     }
 
-    activitiesLoading = false;
-    activities = [
-        {   _id: "new", 
-            createdAt: new Date(), 
-            createdBy: { firstName: currentUser.userData.firstName, lastName: currentUser.userData.lastName },
-            message: 'erstellt aktuell eine neue Adresse'
-        }
-    ];
+    if (!recordId) {
+        activitiesLoading = false;
+        activities = [
+            {   _id: "new", 
+                createdAt: new Date(), 
+                createdBy: { firstName: currentUser.userData.firstName, lastName: currentUser.userData.lastName },
+                message: 'erstellt aktuell eine neue Adresse'
+            }
+        ];
+    }
 
     return (
         <div className="mbac-activities-sider">

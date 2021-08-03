@@ -1,4 +1,7 @@
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
+
+import { FlowRouter } from 'meteor/kadira:flow-router';
+import { MediaQuery } from '../client/mediaQueries';
 
 import PageHeader from 'antd/lib/page-header';
 import Button from 'antd/lib/button';
@@ -15,44 +18,62 @@ const { useForm } = Form;
 
 import { ModLayout } from './ModLayout';
 
-import { useModule, useProduct } from '../client/trackers';
+import { useModule, useProduct, useRecord } from '../client/trackers';
 
 
 export const Record = ({ params, mode }) => {
-    const { productId, moduleId } = params;
+    const { productId, moduleId, recordId } = params;
 
     const [ product, productLoading ] = useProduct(productId);
     const [ mod, modLoading ] = useModule(moduleId);
 
+    const [ reloadRevision, setReloadRevision ] = useState(0);
+    const [ record, recordLoading ] = useRecord(productId, moduleId, recordId, reloadRevision);
+    
+    const [ recordMode, setRecordMode ] = useState(mode);
+
     const [ recordForm ] = useForm();
 
-    if (productLoading || modLoading)
+    useEffect( () => {
+        if (record) {
+            setTimeout( () => recordForm.setFieldsValue(record), 50);
+        }
+    });
+
+    if (productLoading || modLoading || recordLoading)
         return null;
     
     // aktuell wird nur das default-layout unterstützt
     const layout = mod.layouts && mod.layouts.default;
     
-    const insertRecord = e => {
+    const saveRecord = e => {
         recordForm.validateFields().then( values => {
             const data = {
                 productId: product._id,
                 moduleId: mod._id,
                 values
             }
+            const methodeName = recordMode === 'NEW' ? 'insertRecord' : 'updateRecord';
 
-            Meteor.call('modules.insertRecord', data, (err, res) => {
+            if (recordMode === 'EDIT') {
+                data._id = recordId;
+            }
+
+            Meteor.call('modules.' + methodeName, data, (err, res) => {
                 if (err) {
-                    message.error('Es ist ein unbekannter Systemfehler aufgetreten. Bitte wenden Sie sich an den Systemadministrator.');
+                    return message.error('Es ist ein unbekannter Systemfehler aufgetreten. Bitte wenden Sie sich an den Systemadministrator.' + err.message);
                 }
 
-                const { status, messageText } = res;
+                const { status, messageText, recordId } = res;
 
                 if (status === 'critical') {
                     message.error('Ein nicht Systemfehler ist aufgetreten: ' + messageText);
+                    return;
                 }
 
                 if (status === 'abort') {
                     message.error(messageText);
+                    return;
                 }
 
                 if (status === 'warning') {
@@ -67,7 +88,11 @@ export const Record = ({ params, mode }) => {
                     message.info(messageText);
                 }
 
-                // or okay ==> do nothing;
+                if (status === 'okay') {
+                    message.success(messageText);
+                }
+                
+                FlowRouter.go(`/records/${productId}/${moduleId}/${recordId}`);
             });
 
         }).catch(errorInfo => {
@@ -75,6 +100,30 @@ export const Record = ({ params, mode }) => {
             message.error('Es ist ein Fehler beim Speichern der Daten aufgetreten. Bitte überprüfen Sie Ihre Eingaben.');
         });
     }
+
+    const editRecord = () => {
+        if (recordMode === 'SHOW') setRecordMode('EDIT');
+    }
+
+    const cancelRecord = () => {
+        if (recordMode === 'EDIT' && record && record._id) {
+            setReloadRevision(reloadRevision + 1);
+            setRecordMode('SHOW');
+        } else if (recordMode === 'NEW') {
+            history.back();
+        }
+    }
+
+    let pageButtons = null;
+    if (recordMode === 'NEW' || recordMode === 'EDIT') pageButtons = [
+            <Button key="2" onClick={cancelRecord}>Abbruch</Button>,
+            <Button key="1" type="primary" onClick={saveRecord}>Speichern</Button>,
+        ]
+    else if ( recordMode === 'SHOW') pageButtons = [
+            <Button key="1" type="dashed" onClick={editRecord}>Bearbeiten</Button>,
+        ]
+    else
+        pageButtons = [];
 
     return (
         <Fragment>
@@ -95,13 +144,22 @@ export const Record = ({ params, mode }) => {
 
             <Affix className="mbac-affix-style-bottom" offsetTop={66}>
                 <PageHeader
-                    title={<span><i className={mod.faIconName} style={{fontSize:32, marginRight:16 }}/>{mod.title}</span>}
-                    subTitle={<span style={{marginTop:8, display:'flex'}}>Neuzugang</span>}
-                    tags={<Tag color="orange" style={{marginTop:8, display:'flex'}}>nicht gespeichert</Tag>}
-                    extra={[
-                        <Button key="2">Abbruch</Button>,
-                        <Button key="1" type="primary" onClick={insertRecord}>Speichern</Button>,
-                    ]}
+                    title={<span><i className={mod.faIconName} style={{fontSize:32, marginRight:16 }}/>{recordMode !== 'NEW' ? record && record.title : ''}</span>}
+                    subTitle={
+                        <MediaQuery showAtTablet showAtDesktop >
+                            <span style={{marginTop:8, display:'flex'}}>{recordMode === 'NEW' ? 'Neuzugang' : null} {`(${mod.namesAndMessages.singular.ohneArtikel})`}</span>
+                        </MediaQuery>
+                    }
+                    tags={
+                        <MediaQuery showAtTablet showAtDesktop >
+                            {
+                                recordMode === 'NEW' 
+                                    ? <Tag color="orange" style={{marginTop:8, display:'flex'}}>nicht gespeichert</Tag>
+                                    : <Tag color="green" style={{marginTop:8, display:'flex'}}>{record && record._id}</Tag>
+                            }
+                        </MediaQuery>
+                    }
+                    extra={pageButtons}
                     style={{borderBottom:'2px solid #e1e1e1', marginBottom:16}}
                 />
             </Affix>
@@ -116,25 +174,10 @@ export const Record = ({ params, mode }) => {
                 <ModLayout
                     product={product}
                     mod={mod}
-                    mode={mode}
+                    record={record}
+                    mode={recordMode}
                 />
             </Form>
         </Fragment>
     );
 }
-
-/*
-<Sider style={{
-    overflow: 'hidden auto',
-    //height: '100vh',
-    position: 'fixed',
-    right: 0,
-}}
-theme="light"
-width="300"
-collapsible
-collapsedWidth="0"
->
-<div>Mit irgendeinem Content</div>    
-</Sider>
-*/

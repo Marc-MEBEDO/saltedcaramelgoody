@@ -26,6 +26,10 @@ export const ActivitySchema = new SimpleSchema({
         type: String,
         label: 'Modulreferenz'
     },
+    recordId: {
+        type: String,
+        label: 'Datensatzreferenz'
+    },
     type: {
         type: String // USER-POST, SYSTEM-LOG
     },

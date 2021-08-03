@@ -6,8 +6,10 @@ import { SharedWithSchema } from '../sharedSchemas/user';
 
 import SimpleSchema from  'simpl-schema';
 
-import { moduleStores } from '..';
+import { getModuleStore } from '..';
 import { Activities } from './activities';
+
+import { injectUserData } from './../helpers/roles';
 
 const SingularPluralSchema = new SimpleSchema({
     mitArtikel: {
@@ -92,6 +94,7 @@ export const ModuleSchema = new SimpleSchema({
                 optional: true
             }
         }),
+
         label: 'Methoden',
         optional: true
     }
@@ -116,7 +119,12 @@ Meteor.methods({
         check(values, Object);
 
         const mod = Mods.findOne(moduleId);
-        
+        const currentUser = Meteor.users.findOne(this.userId);
+
+        if (!currentUser) {
+            return { status: 'critical', messageText: 'Sie sind nicht am System angemeldet' }
+        }
+
         if (mod.methods && mod.methods.onBeforeInsert) {
             let result;
             beforeInsertHook = eval(mod.methods.onBeforeInsert);
@@ -133,27 +141,34 @@ Meteor.methods({
         }
 
         // validate data...
-        
 
-        let moduleStore = moduleStores[moduleId];
+        const moduleStore = getModuleStore(moduleId);
         
-        if (!moduleStore) {
-            moduleStores[moduleId] = new Mongo.Collection(moduleId);
-            moduleStore = moduleStores[moduleId];
+        let recordId = null;
+
+        try {
+            // insert data to store
+            recordId = moduleStore.insert(injectUserData({currentUser}, values));
+            
+            // Insert into activities log
+            Activities.insert(
+                injectUserData({ currentUser }, {
+                    productId,
+                    moduleId,
+                    recordId,
+                    type: 'SYSTEM-LOG',
+                    action: 'INSERT',
+                    message: mod.namesAndMessages.messages.activityRecordInserted || `hat ${mod.namesAndMessages.singular.mitArtikel} erstellt`
+                }, { created: true })
+            );
+        } catch(err) {
+            return { status: 'critical', messageText: 'Fehler beim insert der Daten oder Activity\n' + err.message };
         }
-        
-        // insert data to store
-        moduleStore.insert(values);
 
-        // Insert into activities log
-        Activities.insert({
-            productId,
-            moduleId,
-            type: 'SYSTEM-LOG',
-            action: 'INSERT',
-            message: mod.namesAndMessages.messages.activityRecordInserted || `hat ${mod.namesAndMessages.singular.mitArtikel} erstellt`
-        });
-
-        return { status: 'okay' };
+        return { 
+            status: 'okay', 
+            messageText: `${mod.namesAndMessages.singular.mitArtikel} wurde erfolgreich gespeichert.`, 
+            recordId
+        };
     }
 });

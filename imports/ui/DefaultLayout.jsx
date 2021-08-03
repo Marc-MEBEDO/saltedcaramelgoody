@@ -70,7 +70,6 @@ const ProductsMenu = ({theme='light', mode, displayLogo}) => {
 export const DefaultLayout = props => {
     const { currentUser, params, showActivities = false } = props;
     
-    console.log(props)
     return (
         <Layout>
             <MediaQuery showAtPhone >
@@ -120,7 +119,8 @@ export const DefaultLayout = props => {
                             <Content style={{marginTop:60}}>
                                 <ListActivities 
                                     productId={params.productId}
-                                    modulId={params.modulId}
+                                    moduleId={params.moduleId}
+                                    recordId={params.recordId}
                                     currentUser={currentUser}
                                 />
                             </Content>
