@@ -1,6 +1,9 @@
-import { defaultSecurityLevel } from './../../../security';
+import { defaultSecurityLevel } from './../../../../security';
 
-import { ctStringInput, ctCollapsible, ctInlineCombination } from '../../../../../imports/coreapi/controltypes';
+import { ctStringInput, ctCollapsible, ctInlineCombination } from '../../../../../../imports/coreapi/controltypes';
+
+import { ReportKundenRealtime, ReportKundenStatic } from './reports/ReportKunden';
+
 
 export const Adressen = {
     _id: "adressen",
@@ -8,6 +11,19 @@ export const Adressen = {
     title: "Adressen", 
     description: "Alle Adressen, die von uns benötigt werden.", 
     faIconName: 'fa-fw far fa-building',
+
+    namesAndMessages: {
+        singular: { mitArtikel: 'die Adresse', ohneArtikel: 'Adresse' },
+        plural: { mitArtikel: 'die Adressen', ohneArtikel: 'Adressen' },
+
+        // wenn vorhanden, dann wird die Message genutzt - ansonsten wird
+        // die Msg generisch mit singular oder plural generiert
+        messages: {
+            //activityInsert: 'hat die Adresse erstellt', // hat den Benutzer erstellt, angelegt
+            //activityUpdate: 'hat die Adresse aktualisiert',
+            //activityRemove: 'hat die Adresse gelöscht'
+        }
+    },
 
     fields: {
         title: { type: 'String', rules: [
@@ -101,6 +117,7 @@ export const Adressen = {
                 ]},
             ]
         },
+
         extern: {
             title: 'Adresslayout für Kundenansicht',
             description: 'blablabal',
@@ -156,9 +173,116 @@ export const Adressen = {
 
         onAfterInsert: values => {
 
-            CoreApi.SendMail (
+            //CoreApi.SendMail (
                 
-            )
+            //)
         }
+    },
+
+    dashboards: {
+        dashboardPicker: function() {
+            /*if (this.user.roles.has('external')) return 'extern';
+            if (this.user.roles.has('gf')) return ['default', 'extern'];*/
+
+            return 'default';
+        },//() => 'default',
+
+        default: {
+            rows: [
+                {
+                    elements: [
+                        { label: 'Kunden', type: 'widget', icon: 'far fa-building', color: '#6F4', staticValue: '1.236', width: { xs:24, sm:24, md:12, lg:8, xl:8 } },
+                        { label: 'Hotels', type: 'widget', icon: 'far fa-hotel', color: 'orange', staticValue: '451', width: { xs:24, sm:24, md:12, lg:8, xl:8 } },
+                        { label: 'Interessenten', type: 'widget', icon: 'far fa-hotel', color: 'blue', staticValue: '5.673', width: { xs:24, sm:24, md:12, lg:8, xl:8 } },
+                    ]
+                },
+                {
+                    elements: [
+                        { label: 'Kunden', type: 'chart', icon: 'far fa-hotel', chartType: 'line', color: 'orange', values: [], width: { xs:24, sm:24, md:12, lg:8, xl:8 } },
+                    ]
+                },
+                {
+                    elements: [
+                        {   ...ReportKundenRealtime,
+                            width: { xs:24, sm:24, md:24, lg:24, xl:24 }
+                        },
+                        {   ...ReportKundenStatic,
+                            width: { xs:24, sm:24, md:24, lg:24, xl:24 }
+                        }
+                    ]
+                }
+            ]
+        },
+
+        extern: {
+
+        },
     }
 }
+
+
+//Client:
+/*
+<Row>
+    <Col >
+    
+    </Col>
+
+</Row>*/
+
+
+//Beispiel static:
+
+// client
+/*Meteor.call('getDataForStaticReport', 'adressen', 'ReportKundenStatic', function(err, res){
+    if (err){
+        // Fehlerhandling
+    } else {
+        //'Reportdaten generieren/einfüllen/eintragen';
+        //[ {_id: 'gfkg', title:'Eintracht Frankfurt', strasse:''}, {}, {} ]
+    }
+});*/
+
+
+//CoreApi Server:
+/*Meteor.methods('getDataForStaticReport', function(moduleId, ReportId) {
+
+    let rep = reports[ReportId];
+    let collection = moduleStores[moduleId];
+
+    let retValue = rep.datasource(collection);
+    return retValue;
+})*/
+
+
+
+// Beispiel Realtime:
+/*
+export const useReportData = (moduleId, reportId, additionalClientData) => useTracker( () => {
+    const unauthorized = [ [] ,  false  ];
+    const noDataAvailable = [ [] ,  true ];
+
+    if (!Meteor.user()) {
+        return unauthorized;
+    }
+
+    const handler = Meteor.subscribe('publishReportData', moduleId, reportId, additionalClientData );
+    if (!handler.ready()) {
+        return noDataAvailable;
+    }
+
+    let store = moduleStores[moduleId];
+    let rep = reports[reportId];
+    const data = rep.dataSourceClient(store, additionalClientData);
+
+    return [data, false];
+});
+
+
+// Server:
+Meteor.publish('publishReportData', function(moduleId, ReportId, additionalClientData){
+    let rep = reports[ReportId];
+    let collection = moduleStores[moduleId];
+
+    return rep.datasource(collection, additionalClientData);
+});*/

@@ -16,4 +16,4 @@ Meteor.publish('avatar', function publishAvatar(userId) {
     if (!this.userId) return null;
 
     return Avatars.find({ userId }).cursor;
-});
+}); 

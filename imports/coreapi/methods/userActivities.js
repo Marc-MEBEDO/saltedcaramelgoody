@@ -1,11 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 
-import { Opinions } from '../collections/opinions';
-import { OpinionDetails, OpinionDetailSchema } from '../collections/opinionDetails';
-import { Activities, ActivitySchema, AnswerSchema } from '../collections/activities';
-
-import { hasPermission, injectUserData } from '../helpers/roles';
 import { UserActivities, UserActivitySchema } from '../collections/userActivities';
 
 

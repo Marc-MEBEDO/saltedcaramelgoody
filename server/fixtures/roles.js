@@ -1,4 +1,4 @@
-import { Roles } from '/imports/api/collections/roles';
+import { Roles } from '../../imports/coreapi/collections/roles';
 
 //if (Roles.find().count() != 1) {
     Roles.remove({});
@@ -9,14 +9,6 @@ import { Roles } from '/imports/api/collections/roles';
         score: 0,
         description: 'Zugriff für jeden Benutzer',
         permissions: {
-            opinion: {                
-                create: 0,
-                edit: 0,
-                remove: 0,
-                admin: 0,
-                canPostMessage: 0,
-                manageTemplate: 0
-            },
             shareWith: 0,
             cancelSharedWith: 0,
             cancelOwnSharedWith: 0,
@@ -31,14 +23,6 @@ import { Roles } from '/imports/api/collections/roles';
         score: 100,
         description: 'Zugriff nur für externe - Kunden, Projektleiter, etc.',
         permissions: {
-            opinion: {                
-                create: 0,
-                edit: 0,
-                remove: 0,
-                admin: 0,
-                canPostMessage: 1,
-                manageTemplate: 0
-            },
             shareWith: 1,
             cancelSharedWith: 0,
             cancelOwnSharedWith: 0,
@@ -56,14 +40,6 @@ import { Roles } from '/imports/api/collections/roles';
         score: 200,
         description: 'Zugriff nur für Mitarbeiter',
         permissions: {
-            opinion: {                
-                create: 1,
-                edit: 1,
-                remove: 0,
-                admin: 0,
-                canPostMessage: 1,
-                manageTemplate: 0
-            },
             shareWith: 1,
             cancelSharedWith: 0,
             cancelOwnSharedWith: 1,
@@ -84,14 +60,6 @@ import { Roles } from '/imports/api/collections/roles';
         score: 800,
         description: 'Benutzer, der das Dokument erstellt hat',
         permissions: {
-            opinion: {
-                create: 0,
-                edit: 1,
-                remove: 1,
-                admin: 0,
-                canPostMessage: 1,
-                manageTemplate: 0
-            },
             shareWith: 1,
             cancelSharedWith: 1,
             cancelOwnSharedWith: 1,
@@ -109,14 +77,6 @@ import { Roles } from '/imports/api/collections/roles';
         score: 99999,
         description: 'Admin darf alles',
         permissions: {
-            opinion: {                
-                create: 1,
-                edit: 1,
-                remove: 1,
-                admin: 1,
-                canPostMessage: 1,
-                manageTemplate: 1
-            },
             shareWith: 1,
             cancelSharedWith: 1,
             cancelOwnSharedWith: 1,

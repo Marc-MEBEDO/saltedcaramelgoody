@@ -1,13 +1,14 @@
 import { Meteor } from 'meteor/meteor';
 
-import './appdesign/application';
-
 import './fixtures';
 import './publications';
 import './methods'; 
-import '../imports/api/methods';
+import '../imports/coreapi/methods';
 
 import './datamigration';
+
+import './appdesign/application';
+
 
 import { Accounts } from 'meteor/accounts-base'
 
@@ -16,7 +17,7 @@ Accounts.validateLoginAttempt( loginData => {
 
     if (methodName == 'verifyEmail') {
         return allowed;
-    }
+    } 
 
     if (methodName == 'login') {
         if (loginData.methodArguments[0].resume && allowed) return true;
@@ -38,7 +39,7 @@ Accounts.validateLoginAttempt( loginData => {
 
     throw new Meteor.Error('Unknown Loginattempt rejected.');
 });
-
+ 
 Meteor.startup(() => {
     console.log('Running in ' + process.env.NODE_ENV + ' mode.');
 });

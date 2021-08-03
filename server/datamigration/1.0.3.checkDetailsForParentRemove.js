@@ -1,4 +1,4 @@
-import { OpinionDetails } from '/imports/api/collections/opinionDetails';
+//import { OpinionDetails } from '/imports/api/collections/opinionDetails';
 
 /*const checkChildrenRecursive = (id, by, property, propertyBy) => {
     OpinionDetails.find({

@@ -38,18 +38,6 @@ export const RolesSchema = new SimpleSchema({
     permissions: {
         label: 'Berechtigungen',
         type: new SimpleSchema({
-            opinion: {
-                type: new SimpleSchema({
-                    create: { type: SimpleSchema.Integer, label: 'Gutachten Erstellen', defaultValue: 0 },
-                    edit: { type: SimpleSchema.Integer, label: 'Gutachten Editieren', defaultValue: 0 },
-                    remove: { type: SimpleSchema.Integer, label: 'Gutachten Löschen', defaultValue: 0 },
-                    admin: { type: SimpleSchema.Integer, label: 'Gutachten Administrator ???', defaultValue: 0 },
-                    manageTemplate: { type: SimpleSchema.Integer, label: 'Gutachten Vorlage erstellen, bearbeiten', defaultValue: 0 },
-                    // zum Löschen einer Vorlage benötigt der benutzer die remove Berechtigung UND manageTemplate Berechtigung
-                    canPostMessage: { type: SimpleSchema.Integer, label: 'Darf der Benutzer Nachrichten zu einem Gutachten/-Detail schreiben.', defaultValue: 0 },
-                }),
-                label: 'Berechtigungen für Gutachten'
-            },
             shareWith: {
                 type: SimpleSchema.Integer,
                 label: 'Darf Dinge teilen',

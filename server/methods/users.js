@@ -2,13 +2,12 @@ import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
 import { check } from 'meteor/check';
 
-import { Opinions } from '../../imports/api/collections/opinions';
-import { Roles } from '../../imports/api/collections/roles';
+import { Roles } from '../../imports/coreapi/collections/roles';
 
-import { hasPermission, injectUserData } from '../../imports/api/helpers/roles';
-import { escapeRegExp } from '../../imports/api/helpers/basics';
-import { Activities } from '../../imports/api/collections/activities';
-import { UserActivities } from '../../imports/api/collections/userActivities';
+import { hasPermission, injectUserData } from '../../imports/coreapi/helpers/roles';
+import { escapeRegExp } from '../../imports/coreapi/helpers/basics';
+import { Activities } from '../../imports/coreapi/collections/activities';
+import { UserActivities } from '../../imports/coreapi/collections/userActivities';
 
 const SECRET_PASSWORD = 'jhd&%/f54ff!54hDRa6 H9La3"6*~';
 
@@ -20,10 +19,10 @@ Meteor.methods({
         let currentUser = Meteor.users.findOne(this.userId);
 
         // check if opinion was sharedWith the current User
-        const shared = Opinions.findOne({
+        /*const shared = Opinions.findOne({
             _id: refOpinion,
             "sharedWith.user.userId": this.userId
-        });
+        });*/
 
         if (!shared) {
             throw new Meteor.Error('Das angegebene Gutachten wurde nicht mit Ihnen geteilt. Sie können keinen Gutachter auswählen.');
@@ -36,11 +35,11 @@ Meteor.methods({
         }
 
         
-        const opinionOwners = Opinions.findOne({
+        /*const opinionOwners = Opinions.findOne({
             _id: refOpinion
         }).sharedWith.filter( item => {
             return item.role === 'OWNER';
-        }).map( item => item.user.userId );
+        }).map( item => item.user.userId );*/
 
         const escapedText = escapeRegExp(searchText);
 
@@ -145,10 +144,10 @@ Meteor.methods({
         data.email = data.email.toLowerCase();
 
         // check if opinion was sharedWith the current User
-        const shared = Opinions.findOne({
+        /*const shared = Opinions.findOne({
             _id: refOpinion,
             "sharedWith.user.userId": this.userId
-        });
+        });*/
 
         if (!shared) {
             throw new Meteor.Error('Das angegebene Gutachten wurde nicht mit Ihnen geteilt.');
@@ -171,13 +170,13 @@ Meteor.methods({
             $set: { userData: data }
         });
 
-        Opinions.update(refOpinion, {
+        /*Opinions.update(refOpinion, {
             $push: { 
                 sharedWith: { 
                     user: { userId, firstName, lastName }
                 }
             }
-        });
+        });*/
 
         // post a new Aktivity to this opinion that a new user
         // has acces to this opinion
@@ -206,10 +205,10 @@ Meteor.methods({
         let currentUser = Meteor.users.findOne(this.userId);
 
         // check if opinion was sharedWith the current User
-        const shared = Opinions.findOne({
+        /*const shared = Opinions.findOne({
             _id: refOpinion,
             "sharedWith.user.userId": this.userId
-        });
+        });*/
 
         if (!shared) {
             throw new Meteor.Error('Das angegebene Gutachten wurde nicht mit Ihnen geteilt.');
@@ -224,23 +223,23 @@ Meteor.methods({
         const { userId, firstName, lastName } = data;
 
 
-        const alreadyShared = Opinions.findOne({
+        /*const alreadyShared = Opinions.findOne({
             _id: refOpinion,
             "sharedWith.user.userId": userId
-        });
+        });*/
         if (alreadyShared) {
             throw new Meteor.Error('Das Gutachten wurde bereits mit dem ausgewählten Benutzer geteilt.');
         }
 
-        const opinion = Opinions.findOne(refOpinion);
+       // const opinion = Opinions.findOne(refOpinion);
 
-        Opinions.update(refOpinion, {
+        /*Opinions.update(refOpinion, {
             $push: { 
                 sharedWith: { 
                     user: { userId, firstName, lastName }
                 }
             }
-        });
+        });*/
 
         // post a new Aktivity to this opinion that a new user
         // has acces to this opinion
@@ -301,14 +300,14 @@ Meteor.methods({
             oldUser.userData.firstName !== data.firstName || 
             oldUser.userData.lastName !== data.lastName
         ) {
-            Opinions.update({
+            /*Opinions.update({
                 'sharedWith.user.userId': this.userId
             }, {
                 $set: { 
                     'sharedWith.$.user': { userId: this.userId, firstName: data.firstName, lastName: data.lastName }
                 }
             }, { multiple: true });
-
+            */
             Activities.update({
                 'createdBy.userId': this.userId
             }, {
@@ -328,7 +327,7 @@ Meteor.methods({
             }, { multiple: true });
         }
 
-        Opinions.update({
+        /*Opinions.update({
             'expert1.userId': this.userId
         }, {
             $set: { 
@@ -343,7 +342,7 @@ Meteor.methods({
                 'expert2': { userId: this.userId, ...data }
             }
         }, { multiple: true });
-
+        */
     }
 
 });

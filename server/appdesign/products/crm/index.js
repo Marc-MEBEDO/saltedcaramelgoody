@@ -1,4 +1,4 @@
-import { Adressen } from './modules/adressen';
+import { Adressen } from './modules/adressen/.';
 import { Kontakte } from "./modules/kontakte";
 
 export const Crm = { 

@@ -1,6 +1,4 @@
 import { FilesCollection } from 'meteor/ostrio:files';
-import { Opinions } from '../collections/opinions';
-//import { OpinionDetails } from '../collections/opinionDetails';
 
 let ImageConfig = {
     collectionName: 'images',
@@ -22,12 +20,12 @@ let ImageConfig = {
         const { refOpinion } = fileObj.meta;
 
         // ... and check then if the current-user is member of sharedWith
-        const opinion = Opinions.findOne({
+        /*const opinion = Opinions.findOne({
             _id: refOpinion,
             'sharedWith.user.userId': this.userId
         });
 
-        if (!opinion) return false;
+        if (!opinion) return false;*/
 
         return true;
     }

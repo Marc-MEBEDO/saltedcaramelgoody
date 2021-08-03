@@ -7,6 +7,8 @@ import { SharedWithSchema } from '../sharedSchemas/user';
 import SimpleSchema from  'simpl-schema';
 
 import { moduleStores } from '..';
+import { Activities } from './activities';
+
 
 export const ModuleSchema = new SimpleSchema({
     productId: {
@@ -110,6 +112,15 @@ Meteor.methods({
         
         // insert data to store
         moduleStore.insert(values);
+
+        // Insert into activities log
+        Activities.insert({
+            productId,
+            moduleId,
+            type: 'SYSTEM-LOG',
+            action: 'INSERT',
+            message: mod.namesAndMessages.messages.activityInsert || `hat ${mod.namesAndMessages.singular.mitArtikel} erstellt`
+        });
 
         return { status: 'okay' };
     }

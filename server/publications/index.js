@@ -1,8 +1,6 @@
 import './activities';
 import './images';
 import './layouttypes';
-import './opinionDetails';
-import './opinions';
 
 import './products';
 import './mods';
