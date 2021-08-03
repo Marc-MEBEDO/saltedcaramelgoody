@@ -9,6 +9,14 @@ import SimpleSchema from  'simpl-schema';
 import { moduleStores } from '..';
 import { Activities } from './activities';
 
+const SingularPluralSchema = new SimpleSchema({
+    mitArtikel: {
+        type: String
+    },
+    ohneArtikel: {
+        type: String
+    },
+}); 
 
 export const ModuleSchema = new SimpleSchema({
     productId: {
@@ -23,6 +31,30 @@ export const ModuleSchema = new SimpleSchema({
     description: {
         type: String,
         label: 'Beschreibung'
+    },
+    namesAndMessages: {
+        type: new SimpleSchema({
+
+            singular: SingularPluralSchema,
+            
+            plural: SingularPluralSchema,
+
+            messages: new SimpleSchema({
+                activityRecordInserted: {
+                    type: String,
+                    optional: true
+                },
+                activityRecordUpdated: {
+                    type: String,
+                    optional: true
+                },
+                activityRecordRemoved: {
+                    type: String,
+                    optional: true
+                }
+            })
+        }),
+        label: 'Namen und Meldungstexte'
     },
     position: {
         type: SimpleSchema.Integer,
@@ -119,7 +151,7 @@ Meteor.methods({
             moduleId,
             type: 'SYSTEM-LOG',
             action: 'INSERT',
-            message: mod.namesAndMessages.messages.activityInsert || `hat ${mod.namesAndMessages.singular.mitArtikel} erstellt`
+            message: mod.namesAndMessages.messages.activityRecordInserted || `hat ${mod.namesAndMessages.singular.mitArtikel} erstellt`
         });
 
         return { status: 'okay' };

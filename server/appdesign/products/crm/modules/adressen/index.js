@@ -19,9 +19,7 @@ export const Adressen = {
         // wenn vorhanden, dann wird die Message genutzt - ansonsten wird
         // die Msg generisch mit singular oder plural generiert
         messages: {
-            //activityInsert: 'hat die Adresse erstellt', // hat den Benutzer erstellt, angelegt
-            //activityUpdate: 'hat die Adresse aktualisiert',
-            //activityRemove: 'hat die Adresse gelöscht'
+
         }
     },
 

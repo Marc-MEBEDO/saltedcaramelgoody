@@ -51,9 +51,6 @@ export const Dashboard = ({ params }) => {
                     {   _id: 'ReportKundenStatic', 
                         type: 'static-report', ...sharedReportKunden,
                         width: { xs:24, sm:24, md:24, lg:24, xl:24 }
-                    },
-                    {   ...ReportKundenStatic,
-                        width: { xs:24, sm:24, md:24, lg:24, xl:24 }
                     }
                 ]
             }

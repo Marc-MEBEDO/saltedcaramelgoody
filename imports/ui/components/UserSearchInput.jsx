@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import React from 'react';
 import Select from 'antd/lib/select';
 
-import { debounce } from '../../api/helpers/basics';
+import { debounce } from '../../coreapi/helpers/basics';
 
 const { Option } = Select;
 

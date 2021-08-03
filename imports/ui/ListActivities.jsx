@@ -15,8 +15,8 @@ import { DiffDrawer } from './components/Differ';
 import { ReplyTo } from './components/ReplyTo';
 import { MentionsWithEmojis } from './components/MentionsWithEmojis';
 
-import { useOpinion, useActivities } from '../client/trackers';
-import { hasPermission } from '../api/helpers/roles';
+import { useActivities } from '../client/trackers';
+import { hasPermission } from '../coreapi/helpers/roles';
 
 import { FlowRouter } from 'meteor/kadira:flow-router';
 import { Expert } from './components/Expert';
@@ -64,7 +64,7 @@ export const ListActivities = ( { productId, moduleId, recordId, currentUser, on
             perm.sharedRole = sharedWithUser.role;
         }
         
-        post = hasPermission(perm, 'opinion.canPostMessage');
+        post = false; //hasPermission(perm, 'opinion.canPostMessage');
         
         if (post != canPostMessage) setCanPostMessage(post);
     }

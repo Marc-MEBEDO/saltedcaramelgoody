@@ -31,7 +31,7 @@ const emojisMap = [
     {emoji: "👏", s: "-", e: 128079}
 ];
 
-import { debounce } from '../../api/helpers/basics';
+import { debounce } from '../../coreapi/helpers/basics';
 
 export class MentionsWithEmojis extends React.Component {
     constructor(props) {

@@ -1,14 +1,11 @@
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 
-import { OpinionDetails } from '../api/collections/opinionDetails';
-import { Opinions } from '../api/collections/opinions';
-import { Roles } from '../api/collections/roles';
-import { Activities } from '../api/collections/activities';
-import { UserActivities } from '../api/collections/userActivities';
+import { Roles } from '../coreapi/collections/roles';
+import { Activities } from '../coreapi/collections/activities';
+import { UserActivities } from '../coreapi/collections/userActivities';
 import { Images } from '../api/collections/images';
 import { Layouttypes } from '../api/collections/layouttypes';
-import { OpinionPdfs } from '../api/collections/opinion-pdfs';
 import { Avatars } from '../api/collections/avatars';
 
 import { Products } from '../coreapi/collections/products';
@@ -84,104 +81,6 @@ export const useLayouttypes = () => useTracker( () => {
     return [layouttypes, false];
 });
 
-
-/**
- * Load the Opinion by its ID reactively
- * 
- * @param {String} refOpinion Id of the Opinion
- */
-export const useOpinion = refOpinion => useTracker( () => {
-    const noDataAvailable = [ null /*opinion*/,  true /*loading*/ ];
-
-    if (!Meteor.user()) {
-        return noDataAvailable;
-    }
-
-    const handler = Meteor.subscribe('opinions', refOpinion)
-    if (!handler.ready()) {
-        return noDataAvailable;
-    }
-
-    const opinion = Opinions.findOne(refOpinion);
-
-    return [opinion, false];
-}, [refOpinion]);
-
-/**
- * Load all Opinions reactively
- * 
- */
-export const useOpinions = () => useTracker( () => {
-    const noDataAvailable = [ [] /*opinions*/,  true /*loading*/ ];
-
-    if (!Meteor.user()) {
-        return noDataAvailable;
-    }
-
-    const handler = Meteor.subscribe('opinions');
-    if (!handler.ready()) {
-        return noDataAvailable;
-    }
-
-    const opinions = Opinions.find({}, { sort: { opinionNo: -1 } }).fetch();
-
-    return [opinions, false];
-});
-
-/**
- * Load the given OpinionDetail reactivly.
- * 
- * @param {String} refOpinion   id of the Opinion
- * @param {String} refDetail    id of the OpinionDetail
- */
-export const useOpinionDetail = (refOpinion, refDetail) => useTracker( () => {
-    const noDataAvailable = [ null /*opinionDetail*/,  true /*loading*/ ];
-
-    if (!Meteor.user()) {
-        return noDataAvailable;
-    }
-    const handler = Meteor.subscribe('opinionDetail', { refOpinion, refDetail });
-
-    if (!handler.ready()) {
-        return noDataAvailable;
-    }
-
-    detail = OpinionDetails.findOne(refDetail);
-
-    return [detail, false];
-}, [refOpinion, refDetail]);
-
-
-/**
- * Load the given OpinionDetail reactivly.
- * 
- * @param {String} refOpinion   id of the Opinion
- * @param {String} refDetail    id of the OpinionDetail
- * @param {Function} callback    Function that will be invoked at rerun
- */
-export const useOpinionDetails = (refOpinion, refParentDetail, callback) => useTracker( () => {
-    const noDataAvailable = [ [] /*opinionDetails*/ , true /*loading*/];
-
-    if (!Meteor.user()) {
-        return noDataAvailable;
-    }
-    const handler = Meteor.subscribe('opinionDetails', { refOpinion, refParentDetail });
-
-    if (!handler.ready()) { 
-        return noDataAvailable;
-    }
-
-    let opinionDetails;
-    if (refParentDetail) {
-        opinionDetails = OpinionDetails.find({ refParentDetail }, { sort: {position: 1}}).fetch();
-    } else {
-        opinionDetails = OpinionDetails.find({ refOpinion, refParentDetail: null }, { sort: {position: 1}}).fetch();
-    }
-
-    if (callback) callback(opinionDetails);
-
-    return [opinionDetails, false];
-}, [refOpinion, refParentDetail]);
 
 
 /**
@@ -302,84 +201,6 @@ export const useImages = refImages => useTracker( () => {
 });
 
 
-
-/**
- * Load all opinionDetails with Type ANSWER and actionText for the given Opinion that should listed
- * in the actionlist orderd by actioncode
- * 
- * @param {String} refOpinion Specifies the opinion
- */
-export const useOpinionActionList = refOpinion => useTracker( () => {
-    const noDataAvailable = [ [] /*actionListitems*/ , true /*loading*/];
-
-    if (!Meteor.user()) {
-        return noDataAvailable;
-    }
-    const subscription = Meteor.subscribe('opinionDetailsActionListitems', refOpinion);
-
-    if (!subscription.ready()) {
-        return noDataAvailable;
-    }
-
-    let actionListitems = OpinionDetails.find({
-        refOpinion,
-        type: 'QUESTION', //{ $in: [ 'QUESTION', 'ANSWER'] },
-        deleted: false,
-        finallyRemoved: false,
-        actionCode: { $ne: 'okay' },
-        actionText: { $ne: null }
-    }, {
-        fields: {
-            _id: 1,
-            refOpinion: 1,
-            actionCode: 1,
-            actionText: 1
-        },
-        sort: {
-            actionPrio: 1,
-            //orderString: 1,
-            parentPosition: 1,
-            position: 1
-        }
-    }).map(item => {
-        item.key = item._id;
-        return item;
-    });
-
-    
-    return [ actionListitems, false ];
-}, [refOpinion]);
-
-/**
- * Load the given Pdf-meta-data for the given opinion.
- * 
- * @param {String} refOpinion   id of the Opinion
- */
-export const useOpinionPdfs = refOpinion => useTracker( () => {
-    const noDataAvailable = [ [] /*opinionPdfs*/ , true /*loading*/];
-
-    if (!Meteor.user()) {
-        return noDataAvailable;
-    }
-    const handler = Meteor.subscribe('opinion-pdfs', refOpinion);
-
-    if (!handler.ready()) { 
-        return noDataAvailable;
-    }
-
-    const data = OpinionPdfs.find({ "meta.refOpinion": refOpinion }, { sort: { 'meta.createdAt': -1 }}).fetch();
-
-    return [
-        data.map( file => {
-            let link = OpinionPdfs.findOne({_id: file._id}).link();
-            file.link = link;
-            return file;
-        }), 
-        false
-    ];
-}, [refOpinion]);
-
-
 /**
  * Load the current Avatar for the given user
  * 
@@ -404,8 +225,6 @@ export const useAvatar = userId => useTracker( () => {
         false
     ];
 }, [userId]);
-
-
 
 
 /**

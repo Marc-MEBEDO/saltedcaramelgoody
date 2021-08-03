@@ -11,7 +11,7 @@ import notification from 'antd/lib/notification';
 import InfoCircleOutlined from '@ant-design/icons/InfoCircleOutlined';
 import RestOutlined from '@ant-design/icons/RestOutlined';
 
-import { isObject, isBoolean, isNumeric } from '../../api/helpers/basics';
+import { isObject, isBoolean, isNumeric } from '../../../imports/coreapi/helpers/basics';
 
 import Diff from 'diff';
 

@@ -30,9 +30,9 @@ Meteor.methods({
 
         const sharedWithRole = shared.sharedWith.find( s => s.user.userId == this.userId );
         
-        if (!hasPermission({ currentUser, sharedRole: sharedWithRole.role }, 'opinion.edit')) {
+        /*if (!hasPermission({ currentUser, sharedRole: sharedWithRole.role }, 'opinion.edit')) {
             throw new Meteor.Error('Keine Berechtigung zum Bearbeiten des Gutachtens. Sie können keinen Gutachter auswählen.');
-        }
+        }*/
 
         
         /*const opinionOwners = Opinions.findOne({

@@ -131,7 +131,7 @@ Meteor.methods({
         }
         
         let currentUser = Meteor.users.findOne(this.userId);
-        const opinionDetail = OpinionDetails.findOne(id);
+        //const opinionDetail = OpinionDetails.findOne(id);
 
         const isShared = Opinions.findOne({
             _id: opinionDetail.refOpinion,
@@ -143,7 +143,7 @@ Meteor.methods({
         }
 
         // check if we need to push or pop the like
-        const doneBefore = OpinionDetails.findOne({            
+        /*const doneBefore = OpinionDetails.findOne({            
             _id: id,
             [action + 's.userId']: this.userId
         });
@@ -169,7 +169,7 @@ Meteor.methods({
                     }
                 }
             });
-        }
+        }*/
     },
     
     /**
@@ -200,13 +200,13 @@ Meteor.methods({
 
         const sharedWithRole = sharedOpinion.sharedWith.find( s => s.user.userId == this.userId );
         
-        if (!hasPermission({ currentUser, sharedRole: sharedWithRole.role }, 'opinion.canPostMessage')) {
+        /*if (!hasPermission({ currentUser, sharedRole: sharedWithRole.role }, 'opinion.canPostMessage')) {
             throw new Meteor.Error('Keine Berechtigung zum Erstellen eines Kommentars zu einem Gutachten.');
-        }
+        }*/
         
-        const detailFromActivitiesBy = OpinionDetails.findOne({
+        /*const detailFromActivitiesBy = OpinionDetails.findOne({
             _id: activitiesBy
-        });
+        });*/
 
         const message = messageWithMentions({ currentUser, msg, refs: {
             refOpinion: sharedOpinion._id,
@@ -232,9 +232,9 @@ Meteor.methods({
         Activities.insert(activity);
         
         if (activity.refDetail) {
-            OpinionDetails.update(activity.refDetail, {
+            /*OpinionDetails.update(activity.refDetail, {
                 $inc: { commentsCount: 1 }
-            });
+            });*/
         }
     },
 
@@ -269,9 +269,9 @@ Meteor.methods({
 
         const sharedWithRole = sharedOpinion.sharedWith.find( s => s.user.userId == this.userId );
         
-        if (!hasPermission({ currentUser, sharedRole: sharedWithRole.role }, 'opinion.canPostMessage')) {
+        /*if (!hasPermission({ currentUser, sharedRole: sharedWithRole.role }, 'opinion.canPostMessage')) {
             throw new Meteor.Error('Keine Berechtigung zum Erstellen eines Kommentars zu einem Gutachten.');
-        }
+        }*/
 
         const message = messageWithMentions({ currentUser, msg, refs: {
             refOpinion: sharedOpinion._id,
@@ -314,9 +314,9 @@ Meteor.methods({
         }
 
         if (opinionDetail) {
-            OpinionDetails.update(opinionDetail._id, {
+            /*OpinionDetails.update(opinionDetail._id, {
                 $inc: { commentsCount: 1 }
-            });
+            });*/
         }
     },
 
