@@ -7,6 +7,17 @@ export const Urlaubsanspruch = {
     title: "Urlaubsanspruch",
     description: "Verwaltung der einzelnen Urlaubsansprüche aller Mitarbeiter.",
     faIconName: 'fa-fw fas fa-globe',
+    
+    namesAndMessages: {
+        singular: { mitArtikel: 'der Urlaubsanspruch', ohneArtikel: 'Urlaubsanspruch' },
+        plural: { mitArtikel: 'die Urlaubsansprüche', ohneArtikel: 'Urlaubsansprüche' },
+
+        // wenn vorhanden, dann wird die Message genutzt - ansonsten wird
+        // die Msg generisch mit singular oder plural generiert
+        messages: {
+
+        }
+    },
 
     fields: {
         title: { type: 'String', ...defaultSecurityLevel },
