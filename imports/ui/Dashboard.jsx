@@ -1,22 +1,30 @@
 import React, { Fragment, useState } from 'react';
 
-import Layout from 'antd/lib/layout';
+//import Layout from 'antd/lib/layout';
 import PageHeader from 'antd/lib/page-header';
 import Button from 'antd/lib/button';
-import Tag from 'antd/lib/tag';
+//import Tag from 'antd/lib/tag';
 import Breadcrumb from 'antd/lib/breadcrumb';
 import Affix from 'antd/lib/affix';
 
-const {
+import { Row } from 'antd';
+import { Col } from 'antd';
+import { Avatar } from 'antd';
+import { Card } from 'antd';
+import { Statistic } from 'antd';
+
+import { Bar } from 'react-chartjs-2';
+import { Line } from 'react-chartjs-2';
+
+/*const {
     Header, 
     Sider, 
     Content
-} = Layout;
+} = Layout;*/
 
 import { useModule, useProduct } from '../client/trackers';
 
 import { FlowRouter } from 'meteor/kadira:flow-router';
-
 
 export const Dashboard = ({ params }) => {
     const { productId, moduleId } = params;
@@ -24,8 +32,10 @@ export const Dashboard = ({ params }) => {
     const [ product, productLoading ] = useProduct(productId);
     const [ mod, modLoading ] = useModule(moduleId);
     
-    //const dashbordName = mod.dashbords.dashbardPicker()
-    //const dashboard = mod.dashboards[dashbordName];
+    //const dashboardName = mod.dashboards.dashbardPicker();
+    //const dashboard = mod.dashboards[dashboardName];
+
+
 
     const sharedReportKunden = {
         label: 'Kunden',
@@ -50,11 +60,135 @@ export const Dashboard = ({ params }) => {
                 elements: [
                     {   _id: 'ReportKundenStatic', 
                         type: 'static-report', ...sharedReportKunden,
-                        width: { xs:24, sm:24, md:24, lg:24, xl:24 }
+                        width: { xs:24, sm:24, md:24, lg:24, xl:24 },
+                    }
+                ]
+            },
+            {
+                elements: [
+                    { 
+                        label: 'Kundenkontakte Balkendiagramm...',
+                        type: 'chart',
+                        chartType: 'Bar',
+                        width: { xs:24, sm:24, md:24, lg:12, xl:12 },
+                        data: {
+                            labels: ['Fraport', 'SAP', 'TELEKOM', 'ENGIE', 'Equinix', 'Lillium'],
+                            datasets: [
+                              {
+                                label: 'Anzahl Kontakte pro Adresse - Balkendiagramm...',
+                                data: [12, 19, 3, 25, 11, 7],
+                                fill: true,
+                                //backgroundColor: 'rgb(43, 114, 34)',
+                                //borderColor: 'rgba(255, 99, 132, 0.2)',
+                                backgroundColor: [ 'red' , 'blue' , 'rgb(255, 99, 132)' , 'green' , 'black' , 'orange' ],
+                              },
+                            ],
+                        },
+                        /*options: {
+                            scales: {
+                              yAxes: [
+                                {
+                                  ticks: {
+                                    beginAtZero: false,
+                                  },
+                                },
+                              ],
+                            },
+                        }*/
+                    },
+                    { 
+                        label: 'Kundenkontakte Liniendiagramm...',
+                        type: 'chart',
+                        chartType: 'Line',
+                        width: { xs:24, sm:24, md:24, lg:12, xl:12 },
+                        data: {
+                            labels: ['Fraport', 'SAP', 'TELEKOM', 'ENGIE', 'Equinix', 'Lillium'],
+                            datasets: [
+                              {
+                                label: 'Anzahl Kontakte pro Adresse - Liniendiagramm...',
+                                data: [12, 19, 3, 25, 11, 7],
+                                fill: true,
+                                backgroundColor: 'rgb(29, 49, 141)',
+                                //borderColor: 'rgba(255, 99, 132, 0.2)',
+                              },
+                            ],
+                        },
+                        /*options: {
+                            scales: {
+                              yAxes: [
+                                {
+                                  ticks: {
+                                    beginAtZero: true,
+                                  },
+                                },
+                              ],
+                            },
+                        }*/
                     }
                 ]
             }
         ]
+    }
+    
+    const { Meta } = Card;
+
+    const renderWidget = ( element ) => {
+        return <Card>
+                <Meta
+                    avatar={<Avatar icon={<i className={element.icon} />}/>}
+                    title={element.label}/>
+                <Statistic
+                    value = {element.staticValue}
+                    valueStyle = {{ color: element.color }}/>
+            </Card>;
+    }
+
+    const renderChart = ( element ) => {
+        if ( element.chartType == 'Bar' )
+            return <Bar data={element.data} options={element.options} />;
+        else if ( element.chartType == 'Line' )
+            return <Line data={element.data} options={element.options} />;
+        else
+            return null;
+    }
+
+    const getElement = ( element ) => {
+        if ( element.type ) {
+            if ( element.type == 'widget' )
+                return renderWidget( element );
+            else if ( element.type == 'chart' )
+                return renderChart( element );
+            /*else if ( element.type == 'list' )
+            else if ( element.type == 'table' )
+            else if ( element.type == 'static-report' )
+            else if ( element.type == 'dynamic-report' )*/
+            else
+                return element.label;
+        }
+        else
+            return null;
+    }
+
+    const getElements = ( elements ) => {
+        return ( elements.map( ( element ) => {
+            if ( element ) {
+                if ( element.width )
+                    return <Col {...element.width}>{ getElement( element ) }</Col>;
+                else
+                    return <Col>{ getElement( element ) }</Col>;
+            }
+            else
+                return null;
+        }));
+    };
+    
+    const DashboardRows = ({ rows }) => {
+        return ( rows.map( ( row ) => {
+            if ( row.elements && row.elements.length )
+                return <Row gutter= {[16,16]}>{ getElements( row.elements ) }</Row>;
+            else
+                return null;
+        }));
     }
 
     if (productLoading || modLoading)
@@ -111,7 +245,15 @@ export const Dashboard = ({ params }) => {
                 />
             </Affix>
 
-            <div>Content</div>
+            <div>
+                {
+                    ( dashboard && dashboard.rows && dashboard.rows.length )
+                        ? <DashboardRows
+                            rows={dashboard.rows} 
+                        />
+                        : null
+                }                
+            </div>
         </Fragment>
     );
 }
