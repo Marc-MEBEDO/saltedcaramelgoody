@@ -97,6 +97,12 @@ export const ModuleSchema = new SimpleSchema({
 
         label: 'Methoden',
         optional: true
+    },
+    dashboards: {
+        type: Object,
+        label: 'Dashboards',
+        optional: true,
+        blackbox: true
     }
 });
 

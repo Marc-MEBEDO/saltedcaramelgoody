@@ -1,5 +1,6 @@
 import { Products } from '../../imports/coreapi/collections/products';
 import { Mods } from "../../imports/coreapi/collections/mods";
+import { Reports } from "../../imports/coreapi/collections/reports";
 
 import { FieldSchema } from '../../imports/coreapi/collections/fields';
 import { ActionSchema } from '../../imports/coreapi/collections/actions';
@@ -7,6 +8,34 @@ import { moduleStores } from '../../imports/coreapi';
 
 import { Mongo } from 'meteor/mongo';
 import { LayoutElementsSchema, LayoutSchema } from '../../imports/coreapi/collections/layout';
+
+
+
+export const registerReport = r => {
+    console.log('Register Report', r._id);
+
+    let report = r;
+    if (report.datasource) {
+        
+        const methodName = 'reports.' + r._id;
+        console.log('Register method for static report', methodName);
+        Meteor.methods({ [methodName]: report.datasource });
+        
+        r.datasource = report.datasource.toString();
+    }
+
+    const old = Reports.findOne(r._id);
+    if (old) {
+        //delete r._id;
+        Reports.update(r._id, {
+            $set: r
+        });
+    } else {
+        Reports.insert(report);
+    }
+
+    console.log(`done. (register Report ${report._id})`);
+}
 
 
 /**
@@ -133,9 +162,21 @@ export const registerModule = m => {
         if (typeof m.methods.onBeforeInsert === 'function') m.methods.onBeforeInsert = m.methods.onBeforeInsert.toString();
     }
 
+    if (m.dashboards && typeof m.dashboards.dashboardPicker === 'function') {
+        m.dashboards.dashboardPicker = m.dashboards.dashboardPicker.toString();
+    }
 
-    let mod = Mods.findOne(moduleId);
-    console.log(m);
+    if (m.reports) {
+        m.reports.forEach( r => {
+            r.productId = m.productId;
+            r.moduleId = moduleId;
+
+            registerReport(r)
+        });
+    }
+
+
+    let mod = Mods.findOne(moduleId);    
     if (mod) {
         console.log('update module', moduleId);
         Mods.update(moduleId,  {

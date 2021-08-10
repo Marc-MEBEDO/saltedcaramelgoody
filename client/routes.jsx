@@ -8,6 +8,7 @@ import { App } from '/imports/ui/App';
 import { Home } from '../imports/ui/Home';
 import { Dashboard } from '../imports/ui/Dashboard';
 import { Record } from '../imports/ui/Record';
+import { Report } from '../imports/ui/Report';
 
 import { InfoForm } from '../imports/ui/Info';
 
@@ -164,6 +165,20 @@ FlowRouter.route('/records/:productId/:moduleId/:recordId', {
     action(params, queryParams) {
         mount(App, {
             content: Record,
+            authenticatedRoute: true,
+            params,
+            queryParams,
+            mode: 'SHOW',
+            showActivities: true
+        });
+    },
+});
+
+FlowRouter.route('/reports/:productId/:moduleId/:reportId', {
+    name: 'report',
+    action(params, queryParams) {
+        mount(App, {
+            content: Report,
             authenticatedRoute: true,
             params,
             queryParams,

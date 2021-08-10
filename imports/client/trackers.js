@@ -10,6 +10,7 @@ import { Avatars } from '../api/collections/avatars';
 
 import { Products } from '../coreapi/collections/products';
 import { Mods } from '../coreapi/collections/mods';
+import { Reports } from '../coreapi/collections/reports';
 
 import { getModuleStore } from '../coreapi';
 
@@ -327,5 +328,30 @@ export const useAvatar = userId => useTracker( () => {
 
     return [ doc, false ];
 }, [productId, moduleId, recordId, reloadRevision]);
+
+
+/** 
+ * Lesen des angegeben Reports
+ * 
+ */
+ export const useReport = (reportId) => useTracker( () => {
+    if (!reportId) return [null, false];
+
+    const noDataAvailable = [ null /*record*/ , true /*loading*/];
+
+    if (!Meteor.user()) {
+        return notAuthorized;
+    }
+
+    const handler = Meteor.subscribe('report', { reportId });
+
+    if (!handler.ready()) { 
+        return noDataAvailable;
+    }
+
+    const report = Reports.findOne(reportId);
+
+    return [ report, false ];
+}, [reportId]);
 
 

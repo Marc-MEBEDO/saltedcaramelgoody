@@ -17,6 +17,27 @@ export const LayoutElementsSchema = new SimpleSchema({
     controlType: {
         type: String
     },
+    direction: {
+        type: 'String', // vertical or horizontal für die Darstellung von Radio Buttons
+        optional: true
+    },
+    values: { // Aulistung von z.B: Optionlist values zur Auswahl im Radio oder Select style, etc
+        type: Array, //SimpleSchema.oneOf(String, Array),
+        optional: true,
+        //custom: () => true
+    },
+    'values.$': {
+        type: new SimpleSchema({
+            _id: { type: String },
+            title: { type: String },
+            color: { type: String, optional: true },
+            backgroundColor: { type: String, optional: true }
+        }),
+    },
+    defaultValue: {
+        type: String,
+        optional: true
+    },
     collapsedByDefault: {
         type: Boolean,
         optional: true

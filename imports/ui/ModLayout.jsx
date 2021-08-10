@@ -4,6 +4,9 @@ import Collapse from 'antd/lib/collapse';
 import Form from 'antd/lib/form';
 import Input from 'antd/lib/input';
 import DatePicker from 'antd/lib/date-picker';
+import Radio from 'antd/lib/radio';
+
+import Space from 'antd/lib/space';
 
 import Row from 'antd/lib/row';
 import Col from 'antd/lib/col';
@@ -12,7 +15,7 @@ const { Panel } = Collapse;
 
 import { 
     ctCollapsible, ctInlineCombination,
-    ctStringInput, ctDateInput } from '../../imports/coreapi/controltypes';
+    ctStringInput, ctOptionInput, ctDateInput } from '../../imports/coreapi/controltypes';
 
 const getLabel = elem => {
     return (elem.noTitle ? '' : elem.title);
@@ -21,6 +24,7 @@ const getLabel = elem => {
 const LayoutElements = ({ elements, mod, mode }) => {
     return elements.map( (elem, index) => {
         if (elem.controlType === ctStringInput ) return <StringInput key={index} elem={elem} mod={mod} mode={mode} />
+        if (elem.controlType === ctOptionInput ) return <OptionInput key={index} elem={elem} mod={mod} mode={mode} />
         if (elem.controlType === ctDateInput ) return <DateInput key={index} elem={elem} mod={mod} mode={mode} />
         
         if (elem.controlType === ctCollapsible ) return <Collapsible key={index} elem={elem} mod={mod} mode={mode} />
@@ -40,6 +44,35 @@ const InlineCombination = ({ elem, mod, mode }) => {
                 <LayoutElements elements={elem.elements} mod={mod} mode={mode} />
             </Col>
         </Row>
+    )
+}
+
+const OptionInput = ({ elem, mod, mode }) => {
+    const { fields } = mod;
+    let { rules } = fields[elem.field];
+    console.log('OptionInput', elem, mod, mode);
+
+    if (rules && rules.length) {
+        rules = rules.map(r => {
+            if (r.customValidator) {
+                return eval(r.customValidator);
+            }
+            return r;
+        });
+    }
+// style={{color:v.color || '#fff', backgroundColor: v.backgroundColor || '#999'}}
+    return (
+        <Form.Item 
+            label={getLabel(elem)}
+            name={elem.field}
+            rules={rules}
+        >            
+            <Radio.Group buttonStyle="solid">
+                <Space direction="vertical">
+                    { elem.values.map( v => <Radio.Button key={v._id} value={v._id} >{v.title}</Radio.Button> )}
+                </Space>
+            </Radio.Group>
+        </Form.Item>
     )
 }
 

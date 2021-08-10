@@ -1,9 +1,27 @@
 import { defaultSecurityLevel } from './../../../../security';
 
-import { ctStringInput, ctCollapsible, ctInlineCombination } from '../../../../../../imports/coreapi/controltypes';
+import {
+    ctStringInput, 
+    ctCollapsible,
+    ctInlineCombination,
+    ctOptionInput
+ } from '../../../../../../imports/coreapi/controltypes';
 
-import { ReportKundenRealtime, ReportKundenStatic } from './reports/ReportKunden';
+import { ReportAdressenByKundenart } from './reports/AdressenByKundenart';
+import { ReportAnzahlAdressenByKundenart } from './reports/AnzahlAdressenByKundenart';
 
+import { WidgetAnzahlKunden } from './widgets/AnzahlKunden';
+import { WidgetAnzahlHotels } from './widgets/AnzahlHotels';
+import { WidgetAnzahlInteressenten } from './widgets/AnzahlInteressenten';
+import { WidgetAnzahlPartner } from './widgets/AnzahlPartner';
+
+
+const Kundenarten = [
+    { _id: 'kunde', title:'Kunde', color: '#fff', backgroundColor: 'orange' }, 
+    { _id: 'hotel', title:'Hotel',  color: '#fff', backgroundColor: 'darkgreen' },
+    { _id: 'partner', title:'Kooperationspartner', color: '#fff', backgroundColor: 'red' },
+    { _id: 'interessent', title: 'Interessent', color: '#fff', backgroundColor: 'lightblue' }
+];
 
 export const Adressen = {
     _id: "adressen",
@@ -27,6 +45,10 @@ export const Adressen = {
         title: { type: 'String', rules: [
             { required: true, message: 'Bitte geben Sie den Titel der Adresse ein.' },    
         ] , ...defaultSecurityLevel },
+
+        kundenart: { type: 'String', rules: [
+            { required: true, message: 'Bitte klassifizieren Sie die Adresse.' },
+        ], ...defaultSecurityLevel },
 
         firma1: { type: 'String', rules: [
             { required: true, message: 'Bitte geben Sie den Firmennamen ein.' },
@@ -82,6 +104,7 @@ export const Adressen = {
             
             elements: [
                 { field: 'title', controlType: ctStringInput },
+                { field: 'kundenart', controlType: ctOptionInput, values: Kundenarten, direction: 'vertical', defaultValue: 'kunde' },
                 { title: 'Anschriften', controlType: ctCollapsible, collapsedByDefault: true, elements: [
                     {  field: 'firma1',  controlType: ctStringInput },
                     {  field: 'firma2',  controlType: ctStringInput },
@@ -152,7 +175,7 @@ export const Adressen = {
 
     methods: {
         onBeforeInsert: ({ firma2 }) => {
-            if ( !firma2 ) {
+            /*if ( !firma2 ) {
                 return { status: 'abort', messageText: 'Bitte geben Sie einen Wert im Feld Firma2 ein.' }
             }
             
@@ -163,7 +186,7 @@ export const Adressen = {
             if (firma2 === 'HALLO welt') {
                 firma2 = 'Hallo Welt';
                 return { status: 'info', messageText: 'Der Wert im Feld Firma2 wurde automatisch zu "Hallo Welt" korrigiert.' }
-            }
+            }*/
             
 
             return { status: 'okay' };
@@ -178,25 +201,28 @@ export const Adressen = {
     },
 
     dashboards: {
-        dashboardPicker: function() {
+        dashboardPicker: () => {
             /*if (this.user.roles.has('external')) return 'extern';
             if (this.user.roles.has('gf')) return ['default', 'extern'];*/
 
             return 'default';
-        },//() => 'default',
+        },
 
         default: {
             rows: [
                 {
                     elements: [
-                        { label: 'Kunden', type: 'widget', icon: 'far fa-building', color: '#6F4', staticValue: '1.236', width: { xs:24, sm:24, md:12, lg:8, xl:8 } },
-                        { label: 'Hotels', type: 'widget', icon: 'far fa-hotel', color: 'orange', staticValue: '451', width: { xs:24, sm:24, md:12, lg:8, xl:8 } },
-                        { label: 'Interessenten', type: 'widget', icon: 'far fa-hotel', color: 'blue', staticValue: '5.673', width: { xs:24, sm:24, md:12, lg:8, xl:8 } },
+                        WidgetAnzahlKunden,
+                        WidgetAnzahlHotels,
+                        WidgetAnzahlInteressenten,
+                        WidgetAnzahlPartner
                     ]
                 },
+            ]
+        }/*
                 {
                     elements: [
-                        { label: 'Kunden', type: 'chart', icon: 'far fa-hotel', chartType: 'line', color: 'orange', values: [], width: { xs:24, sm:24, md:12, lg:8, xl:8 } },
+                        { label: 'Kunden', type: 'chart', icon: 'far fa-clock', chartType: 'line', color: 'orange', values: [], width: { xs:24, sm:24, md:12, lg:8, xl:8 } },
                     ]
                 },
                 {
@@ -214,73 +240,113 @@ export const Adressen = {
 
         extern: {
 
+        },*/
+    },
+
+    reports: [
+        ReportAdressenByKundenart,
+        ReportAnzahlAdressenByKundenart
+    ]
+} 
+
+/*
+if (Meteor.isServer) {
+    Meteor.methods({
+        'adressen.AnzahlKontakte'() {
+            const Adressen = getModuleStore('adressen');
+
+            let data = {
+                labels: [],
+                datasets: []
+            }
+
+            //return Adressen.find({}).fetch();
+            const rawData = Adressen.find({}, { fields: { title: 1 }, sort: { createdAt: -1 }, limit: 5 }).fetch();
+
+            data.labels = rawData.map( d => d.title );
+            data.datasets = [{
+                label: 'Anzahl Zeichen im Titel',
+                data: rawData.map( d => d.title.length ),
+                backgroundColor: [
+                    //'palegreen',
+                    //'orange',
+                    '#7093db',
+                    '#6484c5',
+                    '#5975af',
+                    '#4e6699',
+                    '#435883',
+                    '#38496d',
+                    '#2c3a57',
+                    '#212c41'
+                ]
+            }];
+
+            return data;
         },
-    }
-}
 
+        'adressen.hotels'() {
+            const Adressen = getModuleStore('adressen');
 
-//Client:
-/*
-<Row>
-    <Col >
-    
-    </Col>
+            const rawData = Adressen.find({}, { fields: { title: 1, strasse:1, plz:1, ort:1 }, sort: { createdAt: -1 }, limit: 5 }).fetch();
 
-</Row>*/
+            const data = {
+                label: 'Kunden',
+                columns: [ 
+                    'title', 
+                    { firma: document => { return '' } },
+                    { strasse: 'Straße' },
+                    { plz: { label: 'Postleitzahl', value: document => 'D-' + document.plz }}
+                ],
+                values: rawData
+            }
 
+            console.log(data);
+            return data;
+        },
 
-//Beispiel static:
+        'adressen.AnzahlHotels'() {
+            const Adressen = getModuleStore('adressen');
 
-// client
-/*Meteor.call('getDataForStaticReport', 'adressen', 'ReportKundenStatic', function(err, res){
-    if (err){
-        // Fehlerhandling
-    } else {
-        //'Reportdaten generieren/einfüllen/eintragen';
-        //[ {_id: 'gfkg', title:'Eintracht Frankfurt', strasse:''}, {}, {} ]
-    }
-});*/
+            const anz = Adressen.find({kundenart:'hotel'}).count();
 
+            const retValue = {
+                value: anz,
+                color: 'red',
+                icon: 'far fa-building'
+            };
+            console.log (retValue);
+            return retValue
+        },
 
-//CoreApi Server:
-/*Meteor.methods('getDataForStaticReport', function(moduleId, ReportId) {
+        'adressen.AnzahlKunden'() {
+            const Adressen = getModuleStore('adressen');
 
-    let rep = reports[ReportId];
-    let collection = moduleStores[moduleId];
+            const anz = Adressen.find({kundenart:'kunde'}).count();
 
-    let retValue = rep.datasource(collection);
-    return retValue;
-})*/
+            const retValue = {
+                value: anz,
+                color: 'darkgreen',
+                icon: 'far fa-building',
+                label: 'Unsere Kunden'
+            };
+            
+            return retValue
+        },
 
+        'adressen.AnzahlInteressenten'() {
+            const Adressen = getModuleStore('adressen');
 
+            const anz = Adressen.find({kundenart:'interessent'}).count();
 
-// Beispiel Realtime:
-/*
-export const useReportData = (moduleId, reportId, additionalClientData) => useTracker( () => {
-    const unauthorized = [ [] ,  false  ];
-    const noDataAvailable = [ [] ,  true ];
+            const retValue = {
+                value: anz,
+                //color: 'darkgreen',
+                //icon: 'far fa-building',
+                //label: 'Unsere Kunden'
+            };
+            
+            return retValue
+        }
 
-    if (!Meteor.user()) {
-        return unauthorized;
-    }
-
-    const handler = Meteor.subscribe('publishReportData', moduleId, reportId, additionalClientData );
-    if (!handler.ready()) {
-        return noDataAvailable;
-    }
-
-    let store = moduleStores[moduleId];
-    let rep = reports[reportId];
-    const data = rep.dataSourceClient(store, additionalClientData);
-
-    return [data, false];
-});
-
-
-// Server:
-Meteor.publish('publishReportData', function(moduleId, ReportId, additionalClientData){
-    let rep = reports[ReportId];
-    let collection = moduleStores[moduleId];
-
-    return rep.datasource(collection, additionalClientData);
-});*/
+    });
+}*/

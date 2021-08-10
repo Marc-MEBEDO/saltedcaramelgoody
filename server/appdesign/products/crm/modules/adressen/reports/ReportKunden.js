@@ -26,3 +26,10 @@ export const ReportKundenStatic = {
         return Adressen.find({}).fetch();
     }, 
 }
+
+export const ReportAnzahlKontakteByAdressenStatic = {
+    _id: 'ReportAnzahlKontakteByAdressenStatic', 
+    datasource: Adressen => {
+        return Adressen.find({}).fetch();
+    }, 
+}
