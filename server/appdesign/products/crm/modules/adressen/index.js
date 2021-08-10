@@ -15,13 +15,7 @@ import { WidgetAnzahlHotels } from './widgets/AnzahlHotels';
 import { WidgetAnzahlInteressenten } from './widgets/AnzahlInteressenten';
 import { WidgetAnzahlPartner } from './widgets/AnzahlPartner';
 
-
-const Kundenarten = [
-    { _id: 'kunde', title:'Kunde', color: '#fff', backgroundColor: 'orange' }, 
-    { _id: 'hotel', title:'Hotel',  color: '#fff', backgroundColor: 'darkgreen' },
-    { _id: 'partner', title:'Kooperationspartner', color: '#fff', backgroundColor: 'red' },
-    { _id: 'interessent', title: 'Interessent', color: '#fff', backgroundColor: 'lightblue' }
-];
+import { Kundenarten } from './kundenarten';
 
 export const Adressen = {
     _id: "adressen",

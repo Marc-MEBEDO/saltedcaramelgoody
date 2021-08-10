@@ -7,7 +7,7 @@ Meteor.publish('report', function publishReport({ reportId }) {
     check(reportId, String);
 
     const currentUser = Meteor.users.findOne(this.userId);
-
+    
     if (!currentUser)
         return;
 

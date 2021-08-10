@@ -1,3 +1,7 @@
+import React from 'react';
+import Tag from 'antd/lib/tag';
+
+
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 
@@ -350,7 +354,21 @@ export const useAvatar = userId => useTracker( () => {
     }
 
     const report = Reports.findOne(reportId);
-
+    
+    console.log(report);
+    if (report.columns) {
+        report.columns = report.columns.map( c => {
+            const fnCode = c.render;
+            if (fnCode) {
+                c.render = function renderColumn(col, doc) {
+                    let renderer = eval(fnCode);
+                    return renderer(col, doc, report.additionalData || {});
+                }
+            };
+            
+            return c;
+        });
+    }
     return [ report, false ];
 }, [reportId]);
 

@@ -16,5 +16,5 @@ export const WidgetAnzahlPartner = {
     
     width: { xs:24, sm:24, md:12, lg:6, xl:6 },
     
-    onClick: { redirect: '/reports/crm/adressen/AdressenByKundenart?kundenart=hotel' }
+    onClick: { redirect: '/reports/crm/adressen/AdressenByKundenart?kundenart=partner' }
 }

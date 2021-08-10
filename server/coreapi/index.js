@@ -10,31 +10,49 @@ import { Mongo } from 'meteor/mongo';
 import { LayoutElementsSchema, LayoutSchema } from '../../imports/coreapi/collections/layout';
 
 
-
+/***
+ * Registrieren eines neuen oder bestehenden Reports
+ * 
+ * @param {Object} r Entsprechender Report, der erstellt/aktualisiert werden soll
+ */
 export const registerReport = r => {
-    console.log('Register Report', r._id);
-
+    const reportId = r._id;
+    console.log('Register Report', reportId);
+    
     let report = r;
+
+    if (r.columns) {
+        r.columns = r.columns.map( col => {
+            if (col.render && typeof col.render === 'function') col.render = col.render.toString()
+            return col;
+        });
+    }
+
     if (report.datasource) {
         
-        const methodName = 'reports.' + r._id;
+        const methodName = 'reports.' + reportId;
         console.log('Register method for static report', methodName);
         Meteor.methods({ [methodName]: report.datasource });
         
         r.datasource = report.datasource.toString();
     }
 
-    const old = Reports.findOne(r._id);
+    const old = Reports.findOne(reportId);
     if (old) {
         //delete r._id;
-        Reports.update(r._id, {
+        Reports.update(reportId, {
             $set: r
         });
     } else {
         Reports.insert(report);
     }
 
-    console.log(`done. (register Report ${report._id})`);
+    // der update/insert löschen das property und somit steht dies an aufrufender stelle nicht
+    // mehr zur verfügung obwohl es im Weiteren innerhalb des dashboard-property benötigt wird
+    r._id = reportId;
+    report._id = reportId;
+
+    console.log(`done. (register Report ${reportId})`);
 }
 
 

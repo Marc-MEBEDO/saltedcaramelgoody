@@ -29,15 +29,31 @@ export const ReportSchema = new SimpleSchema({
         type: String,
         label: 'Beschreibung'
     },
-
     faIconName: {
         type: String,
         label: 'Symbol',
         optional: true
     },
+    columns: {
+        type: Array,
+        optional: true,
+    },
+    'columns.$': {
+        type: new SimpleSchema({
+            key: { type: String },
+            dataIndex: { type: String },
+            title: { type: String },
+            render: { type: String, optional: true }
+        })
+    },
     datasource: {
         type: String
     },
+    additionalData: {
+        type: Object,
+        optional: true,
+        blackbox: true
+    }
 });
 
 ReportSchema.extend(SharedWithSchema);

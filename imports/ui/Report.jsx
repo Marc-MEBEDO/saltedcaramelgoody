@@ -5,19 +5,20 @@ import { MediaQuery } from '../client/mediaQueries';
 
 import PageHeader from 'antd/lib/page-header';
 import Button from 'antd/lib/button';
-import Tag from 'antd/lib/tag';
+import Result from 'antd/lib/result';
 import Breadcrumb from 'antd/lib/breadcrumb';
 import Affix from 'antd/lib/affix';
 import Form from 'antd/lib/form';
 import message from 'antd/lib/message';
+import Spinner from 'antd/lib/spin';
 
+import Table from 'antd/lib/table';
 import Layout from 'antd/lib/layout';
 const { Header, Content, Footer, Sider } = Layout;
 
 const { useForm } = Form;
 
 import { useModule, useProduct, useReport } from '../client/trackers';
-
 
 export const Report = ({ params, queryParams }) => {
     const { productId, moduleId, reportId } = params;
@@ -26,14 +27,36 @@ export const Report = ({ params, queryParams }) => {
     const [ mod, modLoading ] = useModule(moduleId);
     const [ report, reportLoading ] = useReport(reportId);
 
-    useEffect( () => {
+    const [ loadingData, setLoadingData ] = useState(true);
+    const [ reportData, setReportData ] = useState(null);
+    const [ firstTime, setFirstTime ] = useState(true);
 
-    });
-
-    console.log('Report.jsx', reportId, report, reportLoading)
+    if (reportData === null && firstTime /*&& static = true*/) {
+        Meteor.call('reports.' + reportId, queryParams, (err, result) => {
+            if (err) {
+                // mach was um den Anwender zu informieren, dass ein Fehler aufgetreten ist
+                message.error(err.message);
+            } else {
+                setReportData(result);
+                setLoadingData(false);
+            }
+        });
+        setFirstTime(false);
+    }
 
     if (productLoading || modLoading || reportLoading)
         return null;
+
+    if (!report) {
+        return (
+            <Result
+                status="403"
+                title="403"
+                subTitle="Sorry, Sie sind nicht berechtigt für diesen Report."
+                extra={<Button type="primary" onClick={ () => history.back() }>Zurück</Button>}
+            />
+        )
+    }
 
     return (
         <Fragment>
@@ -61,9 +84,11 @@ export const Report = ({ params, queryParams }) => {
                 />
             </Affix>
 
-            <div>
-                Hier kommt der Report hin
-            </div>
+            { loadingData 
+                ? <Spinner />
+                : <Table dataSource={reportData} columns={report.columns} />
+            }
+
         </Fragment>
     );
 }

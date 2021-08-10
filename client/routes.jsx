@@ -161,7 +161,7 @@ FlowRouter.route('/records/:productId/:moduleId/new', {
 });
 
 FlowRouter.route('/records/:productId/:moduleId/:recordId', {
-    name: 'create-module-record',
+    name: 'show-module-record',
     action(params, queryParams) {
         mount(App, {
             content: Record,
@@ -183,7 +183,7 @@ FlowRouter.route('/reports/:productId/:moduleId/:reportId', {
             params,
             queryParams,
             mode: 'SHOW',
-            showActivities: true
+            showActivities: false
         });
     },
 });
