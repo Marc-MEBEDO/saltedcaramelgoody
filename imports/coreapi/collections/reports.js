@@ -53,6 +53,10 @@ export const ReportSchema = new SimpleSchema({
         type: Object,
         optional: true,
         blackbox: true
+    },
+    type: {
+        type: String,
+        optional: true
     }
 });
 

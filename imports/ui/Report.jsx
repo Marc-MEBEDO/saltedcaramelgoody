@@ -14,6 +14,10 @@ import Spinner from 'antd/lib/spin';
 
 import Table from 'antd/lib/table';
 import Layout from 'antd/lib/layout';
+
+import { Bar } from 'react-chartjs-2';
+import { Line } from 'react-chartjs-2';
+
 const { Header, Content, Footer, Sider } = Layout;
 
 const { useForm } = Form;
@@ -31,6 +35,8 @@ export const Report = ({ params, queryParams }) => {
     const [ reportData, setReportData ] = useState(null);
     const [ firstTime, setFirstTime ] = useState(true);
 
+    const queryP = queryParams;
+
     if (reportData === null && firstTime /*&& static = true*/) {
         Meteor.call('reports.' + reportId, queryParams, (err, result) => {
             if (err) {
@@ -42,6 +48,18 @@ export const Report = ({ params, queryParams }) => {
             }
         });
         setFirstTime(false);
+    }
+
+    const RenderReport = ({ repData , rep }) => {
+        if ( rep.type == 'table')
+            return <Table dataSource={repData} columns={rep.columns} />;
+        else if ( rep.type == 'chart') {
+            if ( queryP.typedetail && queryP.typedetail == 'bar' )
+                return <Bar data={repData} />;
+            else
+                return <Line data={repData} />;
+        }
+        return null;
     }
 
     if (productLoading || modLoading || reportLoading)
@@ -86,7 +104,7 @@ export const Report = ({ params, queryParams }) => {
 
             { loadingData 
                 ? <Spinner />
-                : <Table dataSource={reportData} columns={report.columns} />
+                : <RenderReport repData={reportData} rep={report} />
             }
 
         </Fragment>

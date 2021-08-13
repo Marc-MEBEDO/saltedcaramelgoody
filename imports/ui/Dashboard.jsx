@@ -27,16 +27,17 @@ import { useModule, useProduct } from '../client/trackers';
 import { FlowRouter } from 'meteor/kadira:flow-router';
 
 
-export const GenericBar = ({element, options}) => {
-    const { static, datasource } = element;
+export const GenericChart = ({element, options, chartType}) => {
+    const type = chartType;
+    const { static, report, params, onClick } = element;
 
     const [ loadingData, setLoadingData ] = useState(true);
     const [ data, setData ] = useState(null);
     
     useEffect( () => {
         if (static && data === null) {
-            Meteor.call(datasource, (err, result) => {
-                console.log(err, result);
+            Meteor.call('reports.' + report._id, params, (err, result) => {
+                console.log(report._id, err, result);
                 if (err) {
                     // mach was um den Anwender zu informieren, dass ein Fehler aufgetreten ist
                 } else {
@@ -50,16 +51,23 @@ export const GenericBar = ({element, options}) => {
         }
     })
 
+    drillDown = () => {
+        if (onClick && onClick.redirect) {
+            FlowRouter.go(onClick.redirect);
+        }
+    }
 
     if ( loadingData ) 
         return <Spinner />;
 
     return (
-        <Bar key={element._id} data={data} options={options} />
+        <div onClick={drillDown} style={{cursor:'pointer'}} >
+            { ( type == 'Bar')
+            ? <Bar key={element._id} data={data} options={options} />
+            : <Line key={element._id} data={data} options={options} /> }
+        </div>
     );
 }
-
-
 
 export const GenericWidget = ({element}) => {
     const { static, report, params, onClick } = element;
@@ -71,7 +79,7 @@ export const GenericWidget = ({element}) => {
     useEffect( () => {
         if (static && data === null) {
             Meteor.call('reports.' + report._id, params, (err, result) => {
-                console.log(report._id, err, result)
+                console.log(report._id, err, result);
 
                 if (err) {
                     // mach was um den Anwender zu informieren, dass ein Fehler aufgetreten ist
@@ -111,15 +119,6 @@ export const GenericWidget = ({element}) => {
     );
 }
 
-
-
-
-
-
-
-
-
-
 export const Dashboard = ({ params }) => {
     const { productId, moduleId } = params;
 
@@ -136,10 +135,10 @@ export const Dashboard = ({ params }) => {
     const dashboard = (mod.dashboards || {})[dashboardName];
     
     const renderChart = ( element ) => {
-        if ( element.chartType == 'Bar' )
-            return <GenericBar key={element.key} element={element} />; //<Bar data={element.data} options={element.options} />;
-        else if ( element.chartType == 'Line' )
-            return <Line key={element.key} data={element.data} options={element.options} />;
+        if ( element.typedetail == 'Bar' )
+            return <GenericChart key={element.key} element={element} chartType='Bar'/>; //<Bar data={element.data} options={element.options} />;
+        else if ( element.typedetail == 'Line' )
+            return <GenericChart key={element.key} element={element} chartType='Line'/>; //<Line key={element.key} data={element.data} options={element.options} />;
         else
             return null;
     }

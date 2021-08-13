@@ -9,11 +9,15 @@ import {
 
 import { ReportAdressenByKundenart } from './reports/AdressenByKundenart';
 import { ReportAnzahlAdressenByKundenart } from './reports/AnzahlAdressenByKundenart';
+import { ReportKontakteProAdresse } from './reports/KontakteProAdresse';
 
 import { WidgetAnzahlKunden } from './widgets/AnzahlKunden';
 import { WidgetAnzahlHotels } from './widgets/AnzahlHotels';
 import { WidgetAnzahlInteressenten } from './widgets/AnzahlInteressenten';
 import { WidgetAnzahlPartner } from './widgets/AnzahlPartner';
+
+import { ChartKontakteProAdresseBar } from './reports/KontakteProAdresse';
+import { ChartKontakteProAdresseLine } from './reports/KontakteProAdresse';
 
 import { Kundenarten } from './kundenarten';
 
@@ -212,6 +216,12 @@ export const Adressen = {
                         WidgetAnzahlPartner
                     ]
                 },
+                {
+                    elements: [
+                        ChartKontakteProAdresseBar,
+                        ChartKontakteProAdresseLine
+                    ]
+                },
             ]
         }/*
                 {
@@ -239,7 +249,8 @@ export const Adressen = {
 
     reports: [
         ReportAdressenByKundenart,
-        ReportAnzahlAdressenByKundenart
+        ReportAnzahlAdressenByKundenart,
+        ReportKontakteProAdresse
     ]
 } 
 
