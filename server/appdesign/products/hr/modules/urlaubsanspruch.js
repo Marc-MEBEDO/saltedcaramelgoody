@@ -1,6 +1,8 @@
 import { defaultSecurityLevel } from './../../../security';
 import { ctStringInput, ctCollapsible, ctInlineControls, ctDateInput } from '../../../../../imports/coreapi/controltypes';
 
+import { FieldNamesAndMessages } from '../../../../coreapi';
+
 export const Urlaubsanspruch = { 
     _id: "urlaubsanspruch",
 
@@ -20,10 +22,10 @@ export const Urlaubsanspruch = {
     },
 
     fields: {
-        title: { type: 'String', ...defaultSecurityLevel },
-        datumVon: { type: 'String', ...defaultSecurityLevel },
-        datumBis: { type: 'String', ...defaultSecurityLevel },
-        urlaubsanspruch: { type: 'String', ...defaultSecurityLevel },
+        title: { type: 'String', ...FieldNamesAndMessages('der', 'Titel', 'die', 'Titel', { onChange: 'den Titel'}), ...defaultSecurityLevel },
+        datumVon: { type: 'String', ...FieldNamesAndMessages('das', 'Datum (von)', 'das', 'Datum (von)'), ...defaultSecurityLevel },
+        datumBis: { type: 'String', ...FieldNamesAndMessages('das', 'Datum (bis)', 'das', 'Datum (bis)'), ...defaultSecurityLevel },
+        urlaubsanspruch: { type: 'String', ...FieldNamesAndMessages('der', 'Urlaubsanspruch', 'die', 'Urlaubsansprüche', { onChange: 'den Urlaubsanspruch'}), ...defaultSecurityLevel },
     },
 
     actions: {

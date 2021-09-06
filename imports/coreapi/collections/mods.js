@@ -8,17 +8,11 @@ import SimpleSchema from  'simpl-schema';
 
 import { getModuleStore } from '..';
 import { Activities } from './activities';
+import { determineChanges } from '../helpers/activities';
 
 import { injectUserData } from './../helpers/roles';
 
-const SingularPluralSchema = new SimpleSchema({
-    mitArtikel: {
-        type: String
-    },
-    ohneArtikel: {
-        type: String
-    },
-}); 
+import { SingularPluralSchema } from '../sharedSchemas/singularPlural';
 
 export const ModuleSchema = new SimpleSchema({
     productId: {
@@ -92,6 +86,31 @@ export const ModuleSchema = new SimpleSchema({
                 type: String,
                 label: 'Before Insert Hook',
                 optional: true
+            },
+            onAfterInsert: {
+                type: String,
+                label: 'Before Insert Hook',
+                optional: true
+            },
+            onBeforeUpdate: {
+                type: String,
+                label: 'Before Insert Hook',
+                optional: true
+            },
+            onAfterUpdate: {
+                type: String,
+                label: 'Before Insert Hook',
+                optional: true
+            },
+            onBeforeRemove: {
+                type: String,
+                label: 'Before Insert Hook',
+                optional: true
+            },
+            onAfterRemove: {
+                type: String,
+                label: 'Before Insert Hook',
+                optional: true
             }
         }),
 
@@ -124,13 +143,13 @@ Meteor.methods({
         check(moduleId, String);
         check(values, Object);
 
-        const mod = Mods.findOne(moduleId);
         const currentUser = Meteor.users.findOne(this.userId);
 
         if (!currentUser) {
             return { status: 'critical', messageText: 'Sie sind nicht am System angemeldet' }
         }
 
+        const mod = Mods.findOne(moduleId);
         if (mod.methods && mod.methods.onBeforeInsert) {
             let result;
             beforeInsertHook = eval(mod.methods.onBeforeInsert);
@@ -146,10 +165,10 @@ Meteor.methods({
             }
         }
 
-        // validate data...
+        // TODO:validate data fehlt noch...
 
         const moduleStore = getModuleStore(moduleId);
-        
+
         let recordId = null;
 
         try {
@@ -169,6 +188,130 @@ Meteor.methods({
             );
         } catch(err) {
             return { status: 'critical', messageText: 'Fehler beim insert der Daten oder Activity\n' + err.message };
+        }
+
+        return { 
+            status: 'okay', 
+            messageText: `${mod.namesAndMessages.singular.mitArtikel} wurde erfolgreich gespeichert.`, 
+            recordId
+        };
+    },
+
+    /**
+     * Aktualisieren eines Records
+     * 
+     * @param {Object} param0 { productId, moduleId, recordId, values }
+     * @returns 
+     */
+    'modules.updateRecord'({ productId, moduleId, recordId, values }){
+        check(productId, String);
+        check(moduleId, String);
+        check(recordId, String);
+        check(values, Object);
+
+        const currentUser = Meteor.users.findOne(this.userId);
+        if (!currentUser) {
+            return { status: 'critical', messageText: 'Sie sind nicht am System angemeldet' }
+        }
+
+
+        const moduleStore = getModuleStore(moduleId);
+        
+        const oldValues = moduleStore.findOne({
+            $and: [
+                { _id: recordId },
+                {
+                    $or: [
+                        { "sharedWith.user.userId": currentUser._id },
+                        { sharedWithRoles: { $in: currentUser.userData.roles } }
+                    ]
+                }
+            ]
+        });
+
+        /*
+            prüfen, ob ein Record zurückgeliefert wurde. Falls dem nicht so ist, hat dies
+            folgende Gründe:
+            - recordID ist falsch
+            - Record wurde nicht mit dem benutzer explizit geteilt
+            - Benutzer hat nicht die entsprechende Rolle (geteilt)
+        */
+       if (!oldValues) {
+        return { status: 'critical', messageText: 'Der Datensatz exisitiert nicht oder wurde nicht mit Ihnen geteilt.' }
+       }
+
+        const mod = Mods.findOne(moduleId);
+        if (!mod) {
+            return { status: 'critical', messageText: 'Das angegebene Modul zum Datensatz konnte nicht gefunden werden.' }
+        }
+
+        if (mod.methods && mod.methods.onBeforeUpdate) {
+            let result;
+            beforeUpdateHook = eval(mod.methods.onBeforeUpdate);
+            
+            try {
+                result = beforeUpdateHook(values, oldValues);
+            } catch(err) {
+                return { status: 'critical', messageText: err.message }
+            }
+
+            if (result.status === 'abort') {
+                return { status: result.status, messageText: result.messageText }
+            }
+        }
+
+        // validate data...
+        // TODO ...
+
+        // 
+        const changes = determineChanges(mod.fields, values, oldValues);
+        if (!changes) {
+            return { 
+                status: 'info', 
+                messageText: `Es wurden keine Änderungen durchgeführt.`,
+                recordId
+            };
+        }
+
+        try {
+            // Insert into activities log
+            Activities.insert(
+                injectUserData({ currentUser }, {
+                    productId,
+                    moduleId,
+                    recordId,
+                    type: 'SYSTEM-LOG',
+                    action: 'UPDATE',
+                    ...changes,
+                }, { created: true })
+            );
+
+            // update data in store
+            moduleStore.update(recordId, {
+                $set: values
+            });
+
+            console.log('BEFORE... onAfterUpdate:', values, oldValues);
+            
+            if (mod.methods && mod.methods.onAfterUpdate) {
+                let result;
+                afterUpdateHook = eval(mod.methods.onAfterUpdate);
+                
+                console.log('afterUpdateHook... onAfterUpdate:');
+
+                try {
+                    result = afterUpdateHook(values, oldValues);
+                } catch(err) {
+                    return { status: 'critical', messageText: 'Fehler bei der Ausführung "onAfterUpdate":' + err.message }
+                }
+    
+                if (result.status === 'abort') {
+                    return { status: result.status, messageText: result.messageText }
+                }
+            }
+
+        } catch(err) {
+            return { status: 'critical', messageText: 'Fehler beim update der Daten oder Activity\n' + err.message };
         }
 
         return { 

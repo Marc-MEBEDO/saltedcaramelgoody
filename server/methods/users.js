@@ -8,6 +8,7 @@ import { hasPermission, injectUserData } from '../../imports/coreapi/helpers/rol
 import { escapeRegExp } from '../../imports/coreapi/helpers/basics';
 import { Activities } from '../../imports/coreapi/collections/activities';
 import { UserActivities } from '../../imports/coreapi/collections/userActivities';
+import { getModuleStore } from '../../imports/coreapi';
 
 const SECRET_PASSWORD = 'jhd&%/f54ff!54hDRa6 H9La3"6*~';
 
@@ -197,57 +198,61 @@ Meteor.methods({
      * 
      * @param {Object} data Specifies the min Data for a new user
      */
-    'users.shareWith'(refOpinion, data) {
+    'users.shareWith'(productId, moduleId, recordId, data) {
+        check(recordId, String);
+
         if (!this.userId) {
             throw new Meteor.Error('Not Authorized.');
         }
 
         let currentUser = Meteor.users.findOne(this.userId);
+        const moduleStore = getModuleStore(moduleId);
 
         // check if opinion was sharedWith the current User
-        /*const shared = Opinions.findOne({
-            _id: refOpinion,
+        const shared = moduleStore.findOne({
+            _id: recordId,
             "sharedWith.user.userId": this.userId
-        });*/
+        });
 
         if (!shared) {
-            throw new Meteor.Error('Das angegebene Gutachten wurde nicht mit Ihnen geteilt.');
+            throw new Meteor.Error('Der angegebene Datensatz wurde nicht mit Ihnen geteilt.');
         }
 
         const sharedWithRole = shared.sharedWith.find( s => s.user.userId == this.userId );
         
         if (!hasPermission({ currentUser, sharedRole: sharedWithRole.role }, 'shareWith')) {
-            throw new Meteor.Error('Sie besitzen keine Berechtigung zum Teilen des Gutachtens mit anderen Benutzern.');
+            throw new Meteor.Error('Sie besitzen keine Berechtigung zum Teilen der Daten mit anderen Benutzern.');
         }
 
         const { userId, firstName, lastName } = data;
 
 
-        /*const alreadyShared = Opinions.findOne({
-            _id: refOpinion,
+        const alreadyShared = moduleStore.findOne({
+            _id: recordId,
             "sharedWith.user.userId": userId
-        });*/
+        });
         if (alreadyShared) {
-            throw new Meteor.Error('Das Gutachten wurde bereits mit dem ausgewählten Benutzer geteilt.');
+            throw new Meteor.Error('Die Daten sind bereits mit dem ausgewählten Benutzer geteilt.');
         }
 
-       // const opinion = Opinions.findOne(refOpinion);
+        const record = moduleStore.findOne(recordId);
 
-        /*Opinions.update(refOpinion, {
+        moduleStore.update(recordId, {
             $push: { 
                 sharedWith: { 
                     user: { userId, firstName, lastName }
                 }
             }
-        });*/
+        });
 
-        // post a new Aktivity to this opinion that a new user
+        // post a new Aktivity to this record that a new user
         // has acces to this opinion
         const activity = injectUserData({ currentUser }, {
-            refOpinion,
-            refDetail: null,
+            recordId,
+            moduleId,
+            productId,
             type: 'SYSTEM-POST',
-            message: `hat das Gutachten mit dem Benutzer <strong>${firstName + ' ' + lastName}</strong> geteilt.`
+            message: `hat die Adresse mit dem Benutzer <strong>${firstName + ' ' + lastName}</strong> geteilt.`
         }, { created: true });
         
         Activities.insert(activity);
@@ -257,9 +262,9 @@ Meteor.methods({
             injectUserData({ currentUser }, {
                 refUser: userId,
                 type: 'SHAREDWITH',
-                refs: { refOpinion },
-                message: `${currentUser.userData.firstName} ${currentUser.userData.lastName} hat ${opinion.isTemplate ? 'eine Gutachtenvorlage':'ein Gutachten'} mit Ihnen geteilt.`,
-                originalContent: `Gutachten / ${opinion.title} / ${opinion.opinionNo}`,
+                refs: { recordId },
+                message: `${currentUser.userData.firstName} ${currentUser.userData.lastName} hat ***** mit Ihnen geteilt.`,
+                originalContent: `Original content ????`,
                 unread: true
             }, { created: true })
         );
@@ -368,7 +373,7 @@ Accounts.emailTemplates.resetPassword.from = () => {
 
 Accounts.emailTemplates.verifyEmail = {
    subject() {
-      return "MEBEDO GutachtenPlus - Zugang aktivieren";
+      return "MEBEDOs World - Zugang aktivieren";
    },
    html(user, url) {
         const { gender, firstName, lastName} = user.userData;
@@ -376,7 +381,7 @@ Accounts.emailTemplates.verifyEmail = {
 
         return `Guten Tag ${gender} ${lastName},<br>
             <p>
-                Sie sind eingeladen im System <strong>MEBEDO GutachtenPlus</strong> mitzuwirken!
+                Sie sind eingeladen im System <strong>MEBEDOs World</strong> mitzuwirken!
             </p>
             <p>
                 Hierfür wurde ein Benutzer mit Ihrer E-Mailadresse angelegt.

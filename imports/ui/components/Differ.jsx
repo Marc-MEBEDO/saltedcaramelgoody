@@ -11,11 +11,11 @@ import notification from 'antd/lib/notification';
 import InfoCircleOutlined from '@ant-design/icons/InfoCircleOutlined';
 import RestOutlined from '@ant-design/icons/RestOutlined';
 
-import { isObject, isBoolean, isNumeric } from '../../../imports/coreapi/helpers/basics';
+import { isObject, isArray, isBoolean, isNumeric } from '../../../imports/coreapi/helpers/basics';
 
 import Diff from 'diff';
 
-export const DiffDrawer = ( { refOpinion, opinionDetailId, action, changes } ) => {
+export const DiffDrawer = ( { productId, moduleId, recordId, action, changes } ) => {
     const [visibleDiffDrawer, setVisibleDiffDrawer] = useState(false);
 
     const showDiffDrawer = () => {
@@ -53,25 +53,17 @@ export const DiffDrawer = ( { refOpinion, opinionDetailId, action, changes } ) =
         if (action === 'FINALLYREMOVED') {
             Meteor.call('opinionDetail.undoFinallyRemove', opinionDetailId, handleResult);
         } else {
-            if (key === 'participants') {
-                if (action === 'INSERT') {
-                    Meteor.call('opinion.removeParticipant', refOpinion, newValue, handleResult);
-                } else if (action === 'UPDATE') {
-                    Meteor.call('opinion.updateParticipant', refOpinion, oldValue, handleResult);
-                } else if(action === 'REMOVE') {
-                    Meteor.call('opinion.addParticipant', refOpinion, oldValue, handleResult);
+            // undo the current change
+            let data = {
+                productId: productId,
+                moduleId: moduleId,
+                recordId: recordId,
+                values: {
+                    [key]: oldValue
                 }
-            } else {
-                // undo the current change
-                let opinionDetail = {
-                    id: opinionDetailId,
-                    data: {
-                        [key]: oldValue
-                    }
-                }
-                
-                Meteor.call('opinionDetail.update', opinionDetail, handleResult);
             }
+            
+            Meteor.call('modules.updateRecord', data, handleResult);
         }
     }
 
@@ -104,15 +96,17 @@ export const DiffDrawer = ( { refOpinion, opinionDetailId, action, changes } ) =
             if (oldValue === null) oldValue = '';
             if (newValue === null) newValue = '';
 
-            if (isObject(oldValue)) {
+            if (isObject(oldValue) || isArray(oldValue)) {
                 diffType = 'diffJson';
             }
 
-            if (isObject(newValue)) {
+            if (isObject(newValue) || isArray(newValue)) {
                 diffType = 'diffJson';
             }
             
             const changeHtmlTags = v => {
+                if (v === undefined) v = '';
+                
                 v = v.replace(/"data:image\/(png|jpg|jpeg);base64[^"]+/g, '"Bild');
                 v = v.replace(/"data:image\/(png|jpg|jpeg);base64[^"]+/g, '"Bild');
 
@@ -121,9 +115,10 @@ export const DiffDrawer = ( { refOpinion, opinionDetailId, action, changes } ) =
 
                 return v;
             }
-
-            oldValue = changeHtmlTags(oldValue);
-            newValue = changeHtmlTags(newValue);
+            if (diffType !== 'diffJson') {
+                oldValue = changeHtmlTags(oldValue);
+                newValue = changeHtmlTags(newValue);
+            }
 
             const diff = Diff[diffType](oldValue, newValue);
             let diffElements = [];

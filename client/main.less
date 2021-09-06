@@ -63,10 +63,6 @@ body {
       }
 }
 
-.mbac-activities-sider {
-  padding: 16px;
-}
-
 .ant-layout-sider-light.ant-layout-sider-zero-width {
   padding: 0;
 
@@ -253,37 +249,6 @@ main {
    border: none;
    padding: 0;
    height: unset;
-}
-
-.loading {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    border: 5px solid #FFFF00;
-    padding: 10px;
-
-    &.done {
-        position: unset;
-        left: unset;
-        top: unset;
-        transform: unset;
-        border: unset;
-        padding: unset;
-    }
-}
-
-//.ant-mentions.ant-mentions-focused
-.mbac-emojis-input {
-    .ant-mentions-dropdown-menu-item {
-        font-size: 32px;
-    }
-}
-
-span.mbac-user-mention {
-    background-color: lightcyan;
-    color: #666;
-    padding: 2px;
 }
 
 .mbac-user-activies-drawer {
@@ -759,4 +724,21 @@ a[href="https://markerjs.com/"] {
 }
 .ant-radio-button-wrapper:first-child {
     margin: 0
+}
+.ant-radio-button-wrapper-checked {
+    color: var(--radio-color) !important;
+    background-color: var(--radio-bgcolor) !important;
+    border-color: var(--radio-bgcolor) !important;
+}
+
+.list-shared-with-users {
+    .ant-list-item-meta-title {
+        color: #444;
+        font-weight: 400;
+        margin-top: 6px;
+    }
+}
+
+.ant-typography {
+    color: #444;
 }

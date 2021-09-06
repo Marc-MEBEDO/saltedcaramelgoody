@@ -9,6 +9,33 @@ import { moduleStores } from '../../imports/coreapi';
 import { Mongo } from 'meteor/mongo';
 import { LayoutElementsSchema, LayoutSchema } from '../../imports/coreapi/collections/layout';
 
+/**
+ * 
+ * @param {*} artikel 
+ * @param {*} nameSingular 
+ * @param {*} artikelPlural 
+ * @param {*} _namePlural 
+ * @param {*} param4 
+ * @returns 
+ */
+export const FieldNamesAndMessages = (artikel, nameSingular, artikelPlural, namePlural, { title, onUpdate } = { title: null, onUpdate: null }) => {
+    //const namePlural = _namePlural || nameSingular;
+
+    let nam = {
+        title: title || nameSingular,
+
+        namesAndMessages: {
+            singular: { ohneArtikel: nameSingular, mitArtikel: artikel + ' ' + nameSingular},
+            plural: { ohneArtikel: namePlural, mitArtikel: artikelPlural || artikel + ' ' + namePlural},
+
+            messages: {
+                onUpdate: onUpdate || (artikel + ' ' + nameSingular)
+            }
+        }
+    }
+
+    return nam;
+}
 
 /***
  * Registrieren eines neuen oder bestehenden Reports
@@ -89,6 +116,12 @@ export const registerModule = m => {
             })
         }
         
+        if (f.moduleDetails) {
+            if (f.moduleDetails.description) f.moduleDetails.description = f.moduleDetails.description.toString();
+            if (f.moduleDetails.imageUrl) f.moduleDetails.imageUrl = f.moduleDetails.imageUrl.toString();
+            if (f.moduleDetails.link) f.moduleDetails.link = f.moduleDetails.link.toString();
+        }
+
         try {
             FieldSchema.validate(f);
         } catch (err) {
@@ -104,7 +137,7 @@ export const registerModule = m => {
     if (m.actions) {
         let actions = Object.keys(m.actions);
         actions.forEach( actionName => {
-            console.log('Validate action ', actionName);
+            console.log('Validate action ', actionName); 
 
             let a = m.actions[actionName];
             // generiere den Titel anhand des Property-Namen
@@ -178,6 +211,12 @@ export const registerModule = m => {
 
     if (m.methods) {
         if (typeof m.methods.onBeforeInsert === 'function') m.methods.onBeforeInsert = m.methods.onBeforeInsert.toString();
+        if (typeof m.methods.onBeforeUpdate === 'function') m.methods.onBeforeUpdate = m.methods.onBeforeUpdate.toString();
+        if (typeof m.methods.onBeforeRemove === 'function') m.methods.onBeforeRemove = m.methods.onBeforeRemove.toString();
+
+        if (typeof m.methods.onAfterInsert === 'function') m.methods.onAfterInsert = m.methods.onAfterInsert.toString();
+        if (typeof m.methods.onAfterUpdate === 'function') m.methods.onAfterUpdate = m.methods.onAfterUpdate.toString();
+        if (typeof m.methods.onAfterRemove === 'function') m.methods.onAfterRemove = m.methods.onAfterRemove.toString();
     }
 
     if (m.dashboards && typeof m.dashboards.dashboardPicker === 'function') {
@@ -193,13 +232,12 @@ export const registerModule = m => {
         });
     }
 
-
     let mod = Mods.findOne(moduleId);    
     if (mod) {
-        console.log('update module', moduleId);
-        Mods.update(moduleId,  {
+        Mods.update({_id: moduleId},  {
             $set: m
         });
+        console.log('update module', moduleId);
     } else {
         m.sharedWith = [];
         m.sharedWithRoles = ['ADMIN'];
@@ -245,6 +283,7 @@ export const registerProduct = (p, index) => {
         // nach dem Erstellen des Produkts nun noch die zugehörigen Module
         // registrieren und den Verweis setzen
         mods.forEach( (m, i) => {
+            
             // richtigen Verweis auf das Modul setzen
             m.productId = product._id;
             m.position = i;

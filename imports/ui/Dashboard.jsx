@@ -7,11 +7,12 @@ import Button from 'antd/lib/button';
 import Breadcrumb from 'antd/lib/breadcrumb';
 import Affix from 'antd/lib/affix';
 
-import { Row } from 'antd';
-import { Col } from 'antd';
-import { Avatar } from 'antd';
-import { Card } from 'antd';
-import { Statistic } from 'antd';
+import Row from 'antd/lib/row';
+import Col from 'antd/lib/col';
+import Avatar from 'antd/lib/avatar';
+import Card from 'antd/lib/card';
+import Statistic from 'antd/lib/statistic';
+import Table from 'antd/lib/table';
 
 import { Bar } from 'react-chartjs-2';
 import { Line } from 'react-chartjs-2';
@@ -26,6 +27,46 @@ import { useModule, useProduct } from '../client/trackers';
 
 import { FlowRouter } from 'meteor/kadira:flow-router';
 
+export const GenericTableReport = ( { report }) => {
+    const [ loadingData, setLoadingData ] = useState(true);
+    const [ reportData, setReportData ] = useState(null);
+    const [ firstTime, setFirstTime ] = useState(true);
+
+    if (reportData === null && firstTime /*&& static = true*/) {
+        Meteor.call('reports.' + report._id, {}, (err, result) => {
+            console.log(err, result);
+            if (err) {
+                // mach was um den Anwender zu informieren, dass ein Fehler aufgetreten ist
+                message.error(err.message);
+            } else {
+                setReportData(result);
+                setLoadingData(false);
+            }
+        });
+        setFirstTime(false);
+    }
+
+    if (report.columns) {
+        report.columns = report.columns.map( c => {
+            const fnCode = c.render;
+            
+            if (fnCode) {
+                c.render = function renderColumn(col, doc) {
+                    let renderer = eval(fnCode);
+                    return renderer(col, doc, report.additionalData || {});
+                }
+            };
+            
+            return c;
+        });
+    }
+
+    return (
+        loadingData 
+            ? <Spinner />
+            : <Table dataSource={reportData} columns={report.columns} />
+    );
+}
 
 export const GenericChart = ({element, options, chartType}) => {
     const type = chartType;
@@ -149,6 +190,8 @@ export const Dashboard = ({ params }) => {
                 return <GenericWidget element={element} />;
             else if ( element.type == 'chart' )
                 return renderChart( element );
+            else if ( element.type == 'table' )
+                return <GenericTableReport report={element} />
             /*else if ( element.type == 'list' )
             else if ( element.type == 'table' )
             else if ( element.type == 'static-report' )

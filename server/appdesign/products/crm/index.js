@@ -1,5 +1,5 @@
 import { Adressen } from './modules/adressen/.';
-import { Kontakte } from "./modules/kontakte";
+import { Kontakte } from "./modules/kontakte/index";
 
 export const Crm = { 
     _id: "crm", 

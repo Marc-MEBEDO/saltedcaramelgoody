@@ -2,11 +2,14 @@ import React, { Fragment, useState } from 'react';
 import Layout from 'antd/lib/layout';
 import Menu from 'antd/lib/menu';
 import Spin from 'antd/lib/spin';
+import Tabs from 'antd/lib/tabs';
 
+const { TabPane } = Tabs;
 const { Header, Content, Footer, Sider } = Layout;
 const { SubMenu } = Menu;
 
 import { ListActivities } from './ListActivities';
+import { SharedWith } from './SharedWith';
 
 import { FlowRouter } from 'meteor/kadira:flow-router';
 
@@ -108,22 +111,29 @@ export const DefaultLayout = props => {
                     ? null
                     : <MediaQuery showAtTablet showAtDesktop >
                         <Sider 
-                            /*style={{
-                                overflow: 'hidden auto',
-                                height: '100vh',
-                                position: 'fixed',
-                                right: 0,
-                            }}*/
                             theme="light" width="300" collapsible collapsedWidth="0" reverseArrow
                         >
-                            <Content style={{marginTop:60}}>
-                                <ListActivities 
-                                    productId={params.productId}
-                                    moduleId={params.moduleId}
-                                    recordId={params.recordId}
-                                    currentUser={currentUser}
-                                />
+                            <Content style={{padding:8, marginTop:60}}>
+                                <Tabs defaultActiveKey="1" /*onChange={callback}*/>
+                                    <TabPane tab="Aktivitäten" key="1">
+                                        <ListActivities 
+                                            productId={params.productId}
+                                            moduleId={params.moduleId}
+                                            recordId={params.recordId}
+                                            currentUser={currentUser}
+                                        />
+                                    </TabPane>
+                                    <TabPane tab="geteilt mit" key="2">
+                                        <SharedWith 
+                                            productId={params.productId}
+                                            moduleId={params.moduleId}
+                                            recordId={params.recordId}
+                                            currentUser={currentUser}
+                                        />
+                                    </TabPane>
+                                </Tabs>
                             </Content>
+
                         </Sider>
                     </MediaQuery>
                 }

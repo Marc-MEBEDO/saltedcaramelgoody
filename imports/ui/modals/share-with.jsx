@@ -48,7 +48,7 @@ const ShareWithForm = ({ validateFields, resetFields }) => {
     );
 }
 
-export const ModalShareWith = ( { refOpinion, currentUser } ) => {
+export const ModalShareWith = ( { productId, moduleId, recordId, currentUser } ) => {
     const [ showModal, setShowModal ] = useState(false);
     const [ activePanel, setActivePanel ] = useState('INVITE-USER');
     const [ form ] = useForm();
@@ -70,7 +70,7 @@ export const ModalShareWith = ( { refOpinion, currentUser } ) => {
             form.validateFields(['user']).then( values => {
                 const { user } = values;
 
-                Meteor.call('users.shareWith', refOpinion, user, err => {
+                Meteor.call('users.shareWith', productId, moduleId, recordId, user, err => {
                     if (err) {
                         return Modal.error({
                             title: 'Fehler',
@@ -82,7 +82,7 @@ export const ModalShareWith = ( { refOpinion, currentUser } ) => {
             });
         } else {
             form.validateFields(['email', 'gender', 'firstName', 'lastName', 'roles']).then( values => {
-                Meteor.call('users.inviteUser', refOpinion, values, err => {
+                Meteor.call('users.inviteUser', recordId, values, err => {
                     if (err) {
                         return Modal.error({
                             title: 'Fehler',
@@ -100,7 +100,7 @@ export const ModalShareWith = ( { refOpinion, currentUser } ) => {
             <Button type="dashed" onClick={ showDialog }>
                 <Space>
                     <ShareAltOutlined />
-                    Dokument teilen
+                    Teilen
                 </Space>
             </Button>
 

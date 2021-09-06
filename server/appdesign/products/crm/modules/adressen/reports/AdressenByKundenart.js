@@ -23,6 +23,7 @@ export const ReportAdressenByKundenart = {
             title: 'Title',
             dataIndex: 'title',
             key: 'title',
+            render: (title, { _id }) => <a href={`/records/crm/adressen/${_id}`}>{title}</a>
         },
         {
             title: 'Art',
@@ -38,7 +39,7 @@ export const ReportAdressenByKundenart = {
         },
         {
             title: 'Anschrift',
-            dataIndex: 'firma11',
+            dataIndex: 'anschrift',
             key: 'anschrift',
             render: (_, doc) => {
                 return (
@@ -81,7 +82,7 @@ export const ReportAdressenByKundenart = {
 
         const Adressen = getModuleStore('adressen');
         
-        const data = Adressen.find({ kundenart }).fetch().map( d => {
+        const data = Adressen.find({ kundenart }, {sort: { title: 1}}).fetch().map( d => {
             d.key = d._id
             return d;
         });

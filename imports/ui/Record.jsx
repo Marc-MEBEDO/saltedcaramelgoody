@@ -11,17 +11,21 @@ import Affix from 'antd/lib/affix';
 import Form from 'antd/lib/form';
 import message from 'antd/lib/message';
 
+import ShareAltOutlined from '@ant-design/icons/ShareAltOutlined';
+import EditOutlined from '@ant-design/icons/EditOutlined';
+
 import Layout from 'antd/lib/layout';
 const { Header, Content, Footer, Sider } = Layout;
 
 const { useForm } = Form;
 
 import { ModLayout } from './ModLayout';
+import { ModalShareWith } from './modals/share-with';
 
 import { useModule, useProduct, useRecord } from '../client/trackers';
 
 
-export const Record = ({ params, mode }) => {
+export const Record = ({ params, currentUser, mode }) => {
     const { productId, moduleId, recordId } = params;
 
     const [ product, productLoading ] = useProduct(productId);
@@ -36,6 +40,7 @@ export const Record = ({ params, mode }) => {
 
     useEffect( () => {
         if (record) {
+            console.log('setFieldsValue', record);
             setTimeout( () => recordForm.setFieldsValue(record), 50);
         }
     });
@@ -56,7 +61,7 @@ export const Record = ({ params, mode }) => {
             const methodeName = recordMode === 'NEW' ? 'insertRecord' : 'updateRecord';
 
             if (recordMode === 'EDIT') {
-                data._id = recordId;
+                data.recordId = recordId;
             }
 
             Meteor.call('modules.' + methodeName, data, (err, res) => {
@@ -91,12 +96,16 @@ export const Record = ({ params, mode }) => {
                 if (status === 'okay') {
                     message.success(messageText);
                 }
-                
-                FlowRouter.go(`/records/${productId}/${moduleId}/${recordId}`);
+                                
+                if (recordMode === 'NEW') {
+                    // nach dem Neuzugang können wir auf den konkret gespeicherten Datensatz wechsel in der URL
+                    FlowRouter.go(`/records/${productId}/${moduleId}/${recordId}`);
+                }
+                setRecordMode('SHOW');
             });
 
         }).catch(errorInfo => {
-            //console.log(errorInfo);
+            console.log(errorInfo);
             message.error('Es ist ein Fehler beim Speichern der Daten aufgetreten. Bitte überprüfen Sie Ihre Eingaben.');
         });
     }
@@ -114,13 +123,18 @@ export const Record = ({ params, mode }) => {
         }
     }
 
+    const shareRecord = () => {
+        console.log('share clicked');
+    }
+
     let pageButtons = null;
     if (recordMode === 'NEW' || recordMode === 'EDIT') pageButtons = [
-            <Button key="2" onClick={cancelRecord}>Abbruch</Button>,
-            <Button key="1" type="primary" onClick={saveRecord}>Speichern</Button>,
+            <Button key="cancelEdit" onClick={cancelRecord}>Abbruch</Button>,
+            <Button key="save" type="primary" onClick={saveRecord}>Speichern</Button>,
         ]
     else if ( recordMode === 'SHOW') pageButtons = [
-            <Button key="1" type="dashed" onClick={editRecord}>Bearbeiten</Button>,
+            <ModalShareWith key="share1" productId={productId} moduleId={moduleId} recordId={recordId} currentUser={currentUser} />,
+            <Button key="edit" type="dashed" icon={<EditOutlined />} onClick={editRecord}>Bearbeiten</Button>,
         ]
     else
         pageButtons = [];
@@ -150,7 +164,7 @@ export const Record = ({ params, mode }) => {
                             <span style={{marginTop:8, display:'flex'}}>{recordMode === 'NEW' ? 'Neuzugang' : null} {`(${mod.namesAndMessages.singular.ohneArtikel})`}</span>
                         </MediaQuery>
                     }
-                    tags={
+                    /*tags={
                         <MediaQuery showAtTablet showAtDesktop >
                             {
                                 recordMode === 'NEW' 
@@ -158,7 +172,7 @@ export const Record = ({ params, mode }) => {
                                     : <Tag color="green" style={{marginTop:8, display:'flex'}}>{record && record._id}</Tag>
                             }
                         </MediaQuery>
-                    }
+                    }*/
                     extra={pageButtons}
                     style={{borderBottom:'2px solid #e1e1e1', marginBottom:16}}
                 />

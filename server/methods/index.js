@@ -2,3 +2,4 @@
 import './images';
 import './info';
 import './users';
+import './mods';

@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Fragment } from 'react';
 import List from 'antd/lib/list';
 import Form from 'antd/lib/form';
 import Button from 'antd/lib/button';
@@ -21,10 +21,9 @@ import { hasPermission } from '../coreapi/helpers/roles';
 import { FlowRouter } from 'meteor/kadira:flow-router';
 import { Expert } from './components/Expert';
 
-export const ListActivities = ( { productId, moduleId, recordId, currentUser, onClose } ) => {
+export const ListActivities = ( { productId, moduleId, recordId, currentUser/*, onClose*/ } ) => {
     const refOpinion="";
 
-    console.log(productId, moduleId, recordId);
     let [ activities, activitiesLoading ] = useActivities(productId, moduleId, recordId);
     const [form] = Form.useForm();
     const activitiesEndRef = useRef(null);
@@ -134,13 +133,8 @@ export const ListActivities = ( { productId, moduleId, recordId, currentUser, on
     }
 
     return (
-        <div className="mbac-activities-sider">
-            <div style={{height:55}}>
-                <div style={{float:'left'}}>
-                    <strong>Aktivitäten</strong>
-                </div>
-            </div>            
-
+        <Fragment>
+            
             <List
                 className="comment-list"
                 itemLayout="horizontal"
@@ -158,7 +152,7 @@ export const ListActivities = ( { productId, moduleId, recordId, currentUser, on
                                 <div>
                                     <span dangerouslySetInnerHTML={ { __html: item.message } }></span>
                                     { item.type == 'SYSTEM-LOG' 
-                                        ? <DiffDrawer refOpinion={refOpinion} opinionDetailId={item.refDetailFinallyRemoved || item.refDetail} changes={item.changes} action={item.action} />
+                                        ? <DiffDrawer productId={productId} moduleId={moduleId} recordId={recordId} changes={item.changes} action={item.action} />
                                         : null
                                     }
                                     { renderAnswers(item.answers) }
@@ -205,6 +199,6 @@ export const ListActivities = ( { productId, moduleId, recordId, currentUser, on
             }
 
             <div ref={activitiesEndRef} />
-        </div>
+        </Fragment>
     );
 }

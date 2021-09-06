@@ -25,6 +25,11 @@ const {
     Content
 } = Layout;
 
+import Tabs from 'antd/lib/tabs';
+
+const { TabPane } = Tabs;
+
+
 export const SiteLayout = props => {
     const [menuCollapsed, setMenuCollapsed] = useState(window.innerWidth < 600);
     const [activitiesCollapsed, setActivitiesCollapsed] = useState(window.innerWidth < 600);
@@ -146,13 +151,20 @@ export const SiteLayout = props => {
                 }}
                 theme="light" width="300" collapsible collapsed={activitiesCollapsed} collapsedWidth="0"
             >
-                <div>Irgenwas....</div>
-                <ListActivities 
-                    onClose={ toggleActivitiesSider }
-                    refOpinion={props.refOpinion} 
-                    refDetail={props.refDetail} 
-                    currentUser={props.currentUser} 
-                />
+                <Tabs defaultActiveKey="1" /*onChange={callback}*/>
+                    <TabPane tab="Aktivitäten" key="1">
+                        <ListActivities 
+                            //onClose={ toggleActivitiesSider }
+                            refOpinion={props.refOpinion} 
+                            refDetail={props.refDetail} 
+                            currentUser={props.currentUser} 
+                        />
+                    </TabPane>
+                    <TabPane tab="geteilt mit" key="2">
+                        Content of Tab Pane 2
+                    </TabPane>
+                </Tabs>
+
             </Sider>
 
             <UserActivitiesDrawer 

@@ -10,6 +10,17 @@ export const isObject = val => {
 }
 
 /**
+ * Tests if given Value is an Array or not
+ * 
+ * @param {Any} val Value to test
+ * @returns {Boolean} True if given Value is an Array otherwise false
+ */
+ export const isArray = val => {
+    if (val === null) { return false;}
+    return Array.isArray(val);
+}
+
+/**
  * Tests if given Value is a Boolean or not
  * 
  * @param {Any} val Value to test
@@ -37,10 +48,13 @@ export const isNumeric = val => {
  * @param {Function} func callback that will be called after debounce is over
  * @param {Interger} wait Time to wait in ms
  * @param {Boolean} immediate If true the callback will be immediate called
+ * @param {Function} directCallback called directly afer invoking
  */
-export const debounce = (func, wait, immediate) => {
+export const debounce = (func, wait, immediate, directCallback) => {
 	var timeout;
 	return function() {
+		if (directCallback) directCallback();
+
 		var context = this, args = arguments;
 		var later = function() {
 			timeout = null;

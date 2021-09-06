@@ -21,6 +21,9 @@ import { ChartKontakteProAdresseLine } from './reports/KontakteProAdresse';
 
 import { Kundenarten } from './kundenarten';
 
+import { FieldNamesAndMessages } from '../../../../../coreapi';
+import { getModuleStore } from '../../../../../../imports/coreapi';
+
 export const Adressen = {
     _id: "adressen",
 
@@ -40,57 +43,159 @@ export const Adressen = {
     },
 
     fields: {
-        title: { type: 'String', rules: [
-            { required: true, message: 'Bitte geben Sie den Titel der Adresse ein.' },    
-        ] , ...defaultSecurityLevel },
+        title: { 
+            type: 'String', 
+            rules: [
+                { required: true, message: 'Bitte geben Sie den Titel der Adresse ein.' },    
+            ],
+            ...FieldNamesAndMessages('der', 'Titel', 'die', 'Titel', { onUpdate: 'den Titel' }),
+            /*x: {
+                singular: { mitArtikel: 'der Titel', ohneArtikel: 'Titel' },
+                plural: { mitArtikel: 'die Titel', ohneArtikel: 'Titel' },
+                messages: {
+                    // $Benutzer hat ***den Title***, ..., ... geändert 
+                    onUpdate: 'den Title'
+                }
+            },*/
+            ...defaultSecurityLevel
+        },
 
-        kundenart: { type: 'String', rules: [
-            { required: true, message: 'Bitte klassifizieren Sie die Adresse.' },
-        ], ...defaultSecurityLevel },
+        kundenart: {
+            type: 'String', 
+            rules: [
+                { required: true, message: 'Bitte klassifizieren Sie die Adresse.' },
+            ],
+            ...FieldNamesAndMessages('die', 'Kundenart', 'die', 'Kundenarten'),
+            /*namesAndMessages: {
+                singular: { mitArtikel: 'die Kundenart', ohneArtikel: 'Kundenart' },
+                plural: { mitArtikel: 'die Kundenarten', ohneArtikel: 'Kundenarten' },
+                messages: {
+                    // Der $$Benutzer hat ***die Kundenart***, das Feld "Firma 1", ... geändert 
+                    onUpdate: 'die Kundenart'
+                }
+            },*/
+            ...defaultSecurityLevel
+        },
 
-        firma1: { type: 'String', rules: [
-            { required: true, message: 'Bitte geben Sie den Firmennamen ein.' },
-            { min: 3, message: 'Bitte geben Sie mindestens 3 Zeichen für den Firmennamen ein.' },
-            { max: 50, message: 'Bitte geben Sie maximal 50 Zeichen für den Firmenname ein.' },
-        ] , ...defaultSecurityLevel },
+        firma1: {
+            type: 'String',
+            rules: [
+                { required: true, message: 'Bitte geben Sie den Firmennamen ein.' },
+                { min: 3, message: 'Bitte geben Sie mindestens 3 Zeichen für den Firmennamen ein.' },
+                { max: 50, message: 'Bitte geben Sie maximal 50 Zeichen für den Firmenname ein.' },
+            ],
+            ...FieldNamesAndMessages('die', 'Firma 1', 'die', 'Firma 1', { onUpdate: 'das Feld "Firma 1"' } ),
+            ...defaultSecurityLevel
+        },
 
-        firma2: { type: 'String', rules: [
-            { max: 50, message: 'Bitte geben Sie maximal 50 Zeichen für den Firmenzusatz (2) ein.' },
-        ] , ...defaultSecurityLevel },
-        firma3: { type: 'String', rules: [
-            { max: 50, message: 'Bitte geben Sie maximal 50 Zeichen für den Firmenzusatz (3) ein.' },
-            { 
-                customValidator: ({ getFieldValue }) => ({
-                    validator(_, value) {
-                        const firma1 = getFieldValue('firma1');
+        firma2: { 
+            type: 'String', 
+            rules: [
+                { max: 50, message: 'Bitte geben Sie maximal 50 Zeichen für den Firmenzusatz (2) ein.' },
+            ],
+            ...FieldNamesAndMessages('die', 'Firma 2', 'die', 'Firma 2', { onUpdate: 'das Feld "Firma 2"'} ),
+            ...defaultSecurityLevel
+        },
+        firma3: { 
+            type: 'String', 
+            rules: [
+                { max: 50, message: 'Bitte geben Sie maximal 50 Zeichen für den Firmenzusatz (3) ein.' },
+                /*{ 
+                    customValidator: ({ getFieldValue }) => ({
+                        validator(_, value) {
+                            const firma1 = getFieldValue('firma1');
 
-                        if (!value || firma1 === value || firma1 === 'Hallo Welt') {
-                            return Promise.resolve();
-                        }
+                            if (!value || firma1 === value || firma1 === 'Hallo Welt') {
+                                return Promise.resolve();
+                            }
 
-                        return Promise.reject(new Error('Bitte geben den Wert "' + firma1 + '" erneut ein.'));
-                    },
-                }),
-            }
-        ] , ...defaultSecurityLevel },
+                            return Promise.reject(new Error('Bitte geben den Wert "' + firma1 + '" erneut ein.'));
+                        },
+                    }),
+                }*/
+            ],
+            ...FieldNamesAndMessages('die', 'Firma 3', 'die', 'Firma 3', { onUpdate: 'das Feld "Firma 3"'} ),
+            ...defaultSecurityLevel },
 
-        strasse: { type: 'String', ...defaultSecurityLevel },
-        plz: { title: 'PLZ', type: 'String', ...defaultSecurityLevel },
-        ort: { type: 'String', ...defaultSecurityLevel },
+        strasse: {
+            type: 'String', 
+            ...FieldNamesAndMessages('die', 'Straße', 'die', 'Straßen'),
+            ...defaultSecurityLevel
+        },
 
-        firmaRechnung: { title: 'Firma', type: 'ArrayOfStrings', ...defaultSecurityLevel },
-        strasseRechnung: { title: 'Straße', type: 'String', ...defaultSecurityLevel },
-        plzRechnung: { title: 'PLZ', type: 'String', ...defaultSecurityLevel },
-        ortRechnung: { title: 'Ort', type: 'String', ...defaultSecurityLevel },
+        plz: {
+            type: 'String',
+            ...FieldNamesAndMessages('die', 'PLZ', 'die', 'Postleitzahlen'),
+            ...defaultSecurityLevel
+        },
 
-        eMailRechnung: { title: 'E-Mailadresse für Rechnungsversandt', type: 'String', ...defaultSecurityLevel },
+        ort: {
+            type: 'String',
+            ...FieldNamesAndMessages('der', 'Ort', 'die', 'Orte', { onUpdate: 'den Ort' }),
+            ...defaultSecurityLevel
+        },
 
-        telefon: { type: 'String', ...defaultSecurityLevel },
-        telefax: { type: 'String', ...defaultSecurityLevel },
-        website: { type: 'String', ...defaultSecurityLevel },
-        email: { type: 'String', ...defaultSecurityLevel },
-        
-        haarfarbe: { type: 'String', ...defaultSecurityLevel },
+        logoUri: {
+            title: 'Logo',
+            type: 'String',
+            ...FieldNamesAndMessages('das', 'Logo', 'die', 'Logos'),
+            ...defaultSecurityLevel
+        },
+
+        firmaRechnung: {
+            title: 'Firma', 
+            type: 'ArrayOfStrings',
+            ...FieldNamesAndMessages('die', 'Firma (Rechnung)', 'die', 'Firma (Rechnung)', { onUpdate: 'das Feld "Firma (Rechnung)"' }),
+            ...defaultSecurityLevel 
+        },
+
+        strasseRechnung: {
+            type: 'String', 
+            ...FieldNamesAndMessages('die', 'Straße (Rechnung)', 'die', 'Straße (Rechnung)', { onUpdate: 'das Feld "Straße (Rechnung)"' }),
+            ...defaultSecurityLevel 
+        },
+
+        plzRechnung: { 
+            type: 'String', 
+            ...FieldNamesAndMessages('die', 'PLZ (Rechnung)', 'die', 'PLZ (Rechnung)', { onUpdate: 'das Feld "PLZ (Rechnung)"' }),
+            ...defaultSecurityLevel 
+        },
+        ortRechnung: {
+            type: 'String', 
+            ...FieldNamesAndMessages('der', 'Ort', 'die', 'Orte', { onUpdate: 'den Ort (Rechnung)' }),
+            ...defaultSecurityLevel
+        },
+
+        eMailRechnung: {
+            title: 'E-Mailadresse für Rechnungsversandt', 
+            type: 'String', 
+            ...FieldNamesAndMessages('die', 'E-Mailadresse für den Rechnungsversandt', 'die', 'E-Mailadressen für den Rechnungsversandt'),
+            ...defaultSecurityLevel
+        },
+
+        telefon: {
+            type: 'String',
+            ...FieldNamesAndMessages('die', 'Telefonnummer', 'die', 'Telefonnummern'),
+            title: 'Telefon',
+            ...defaultSecurityLevel
+        },
+
+        telefax: { 
+            type: 'String',
+            ...FieldNamesAndMessages('die', 'Telefaxnummer', 'die', 'Telefaxnummern'),
+            ...defaultSecurityLevel 
+        },
+        website: {
+            type: 'String',
+            ...FieldNamesAndMessages('die', 'Webseite', 'die', 'Webseiten'),
+            ...defaultSecurityLevel
+        },
+
+        email: {
+            type: 'String', 
+            ...FieldNamesAndMessages('die', 'E-Mailadresse', 'die', 'E-Mailadressen'),
+            ...defaultSecurityLevel
+        },
     },
 
     layouts: {
@@ -102,6 +207,7 @@ export const Adressen = {
             
             elements: [
                 { field: 'title', controlType: ctStringInput },
+                { field: 'logoUri', controlType: ctStringInput },
                 { field: 'kundenart', controlType: ctOptionInput, values: Kundenarten, direction: 'vertical', defaultValue: 'kunde' },
                 { title: 'Anschriften', controlType: ctCollapsible, collapsedByDefault: true, elements: [
                     {  field: 'firma1',  controlType: ctStringInput },
@@ -132,7 +238,7 @@ export const Adressen = {
                     ]},
 
                     {  field: 'eMailRechnung',  controlType: ctStringInput },
-                    {  field: 'haarfarbe',  controlType: ctStringInput },
+                    //{  field: 'haarfarbe',  controlType: ctStringInput },
                 ]},
             ]
         },
@@ -195,6 +301,25 @@ export const Adressen = {
             //CoreApi.SendMail (
                 
             //)
+        },
+
+        onAfterUpdate: (values, { _id }) => {
+            // update der Adressen title und ImageUrl an verwandten stellen
+            const Kontakte = getModuleStore('kontakte');
+
+            const { title, logoUri, firma1, strasse, plz, ort } = values;
+
+            Kontakte.update({
+                'adresse._id': _id
+            }, {
+                $set: {
+                    'adresse.$.title': title,
+                    'adresse.$.description': firma1 + ' • ' + strasse + ' • ' + plz + ' ' + ort,
+                    'adresse.$.imageUrl': logoUri,
+                }
+            }, { multi: true });
+
+            return { status: 'okay' };
         }
     },
 
@@ -223,28 +348,11 @@ export const Adressen = {
                     ]
                 },
             ]
-        }/*
-                {
-                    elements: [
-                        { label: 'Kunden', type: 'chart', icon: 'far fa-clock', chartType: 'line', color: 'orange', values: [], width: { xs:24, sm:24, md:12, lg:8, xl:8 } },
-                    ]
-                },
-                {
-                    elements: [
-                        {   ...ReportKundenRealtime,
-                            width: { xs:24, sm:24, md:24, lg:24, xl:24 }
-                        },
-                        {   ...ReportKundenStatic,
-                            width: { xs:24, sm:24, md:24, lg:24, xl:24 }
-                        }
-                    ]
-                }
-            ]
         },
 
         extern: {
 
-        },*/
+        },
     },
 
     reports: [
@@ -252,106 +360,4 @@ export const Adressen = {
         ReportAnzahlAdressenByKundenart,
         ReportKontakteProAdresse
     ]
-} 
-
-/*
-if (Meteor.isServer) {
-    Meteor.methods({
-        'adressen.AnzahlKontakte'() {
-            const Adressen = getModuleStore('adressen');
-
-            let data = {
-                labels: [],
-                datasets: []
-            }
-
-            //return Adressen.find({}).fetch();
-            const rawData = Adressen.find({}, { fields: { title: 1 }, sort: { createdAt: -1 }, limit: 5 }).fetch();
-
-            data.labels = rawData.map( d => d.title );
-            data.datasets = [{
-                label: 'Anzahl Zeichen im Titel',
-                data: rawData.map( d => d.title.length ),
-                backgroundColor: [
-                    //'palegreen',
-                    //'orange',
-                    '#7093db',
-                    '#6484c5',
-                    '#5975af',
-                    '#4e6699',
-                    '#435883',
-                    '#38496d',
-                    '#2c3a57',
-                    '#212c41'
-                ]
-            }];
-
-            return data;
-        },
-
-        'adressen.hotels'() {
-            const Adressen = getModuleStore('adressen');
-
-            const rawData = Adressen.find({}, { fields: { title: 1, strasse:1, plz:1, ort:1 }, sort: { createdAt: -1 }, limit: 5 }).fetch();
-
-            const data = {
-                label: 'Kunden',
-                columns: [ 
-                    'title', 
-                    { firma: document => { return '' } },
-                    { strasse: 'Straße' },
-                    { plz: { label: 'Postleitzahl', value: document => 'D-' + document.plz }}
-                ],
-                values: rawData
-            }
-
-            console.log(data);
-            return data;
-        },
-
-        'adressen.AnzahlHotels'() {
-            const Adressen = getModuleStore('adressen');
-
-            const anz = Adressen.find({kundenart:'hotel'}).count();
-
-            const retValue = {
-                value: anz,
-                color: 'red',
-                icon: 'far fa-building'
-            };
-            console.log (retValue);
-            return retValue
-        },
-
-        'adressen.AnzahlKunden'() {
-            const Adressen = getModuleStore('adressen');
-
-            const anz = Adressen.find({kundenart:'kunde'}).count();
-
-            const retValue = {
-                value: anz,
-                color: 'darkgreen',
-                icon: 'far fa-building',
-                label: 'Unsere Kunden'
-            };
-            
-            return retValue
-        },
-
-        'adressen.AnzahlInteressenten'() {
-            const Adressen = getModuleStore('adressen');
-
-            const anz = Adressen.find({kundenart:'interessent'}).count();
-
-            const retValue = {
-                value: anz,
-                //color: 'darkgreen',
-                //icon: 'far fa-building',
-                //label: 'Unsere Kunden'
-            };
-            
-            return retValue
-        }
-
-    });
-}*/
+}
