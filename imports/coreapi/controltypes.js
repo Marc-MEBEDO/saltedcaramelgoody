@@ -5,3 +5,6 @@ export const ctInlineCombination = 'InlineCombination';
 export const ctOptionInput = 'Option';
 export const ctDivider = 'Divider';
 export const ctSingleModuleOption = 'SingleModuleOption';
+export const ctReport = 'Report';
+export const ctColumns = 'Columns';
+export const ctGoogleMap = 'GoogleMap';

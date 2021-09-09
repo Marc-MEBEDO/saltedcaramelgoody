@@ -71,7 +71,7 @@ export const DiffDrawer = ( { productId, moduleId, recordId, action, changes } )
         if (!changes || changes.length == 0) {
             return <div>Es sind keine Änderungen vorhanden.</div>
         }
-        //console.log(action, changes)
+        
         let i=0;
         return changes.map(item => {
             let { oldValue, newValue } = item;

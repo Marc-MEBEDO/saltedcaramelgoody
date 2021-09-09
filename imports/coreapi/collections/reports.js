@@ -49,6 +49,15 @@ export const ReportSchema = new SimpleSchema({
     datasource: {
         type: String
     },
+    liveData: { // datasource für realtime
+        type: String,
+        optional: true
+    },
+    isStatic: {
+        type: Boolean,
+        defaultValue: true,
+        optional: true
+    },
     additionalData: {
         type: Object,
         optional: true,

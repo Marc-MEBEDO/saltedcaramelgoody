@@ -40,7 +40,6 @@ export const Record = ({ params, currentUser, mode }) => {
 
     useEffect( () => {
         if (record) {
-            console.log('setFieldsValue', record);
             setTimeout( () => recordForm.setFieldsValue(record), 50);
         }
     });
@@ -105,7 +104,6 @@ export const Record = ({ params, currentUser, mode }) => {
             });
 
         }).catch(errorInfo => {
-            console.log(errorInfo);
             message.error('Es ist ein Fehler beim Speichern der Daten aufgetreten. Bitte überprüfen Sie Ihre Eingaben.');
         });
     }
@@ -138,6 +136,27 @@ export const Record = ({ params, currentUser, mode }) => {
         ]
     else
         pageButtons = [];
+
+
+    let valuesChangeHooks = []
+    const onFieldsChangeHook = (changedFields, allFields) => {
+        //console.log('onFieldsChangeHook', changedFields, allFields);
+    }
+    const registerValuesChangeHook = fnHook => {
+        if (!valuesChangeHooks.find(fn => fn === fnHook))
+        valuesChangeHooks.push(fnHook);
+    }
+
+    const onValuesChangeHook = (changedValues, allValues) => {
+        console.log('onValuesChangeHook', changedValues, allValues);
+
+        const setValue = (field, value) => {
+            //console.log('SET val:', field, value)
+            recordForm.setFieldsValue({[field]:value});
+        }
+
+        valuesChangeHooks.forEach(fn => fn(changedValues, allValues, setValue));
+    }
 
     return (
         <Fragment>
@@ -180,9 +199,14 @@ export const Record = ({ params, currentUser, mode }) => {
 
             <Form
                 layout="horizontal"
-                labelCol={{ span: 4 }}
-                wrapperCol={{ span: 14 }}
+                labelCol={{ span: 6 }}
+                wrapperCol={{ span: 16 }}
                 form={recordForm}
+
+                onFieldsChange={onFieldsChangeHook}
+                onValuesChange={onValuesChangeHook}
+
+                preserve={false}
             >
 
                 <ModLayout
@@ -190,6 +214,8 @@ export const Record = ({ params, currentUser, mode }) => {
                     mod={mod}
                     record={record}
                     mode={recordMode}
+
+                    onValuesChange={registerValuesChangeHook}
                 />
             </Form>
         </Fragment>

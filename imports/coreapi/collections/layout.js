@@ -17,6 +17,10 @@ export const LayoutElementsSchema = new SimpleSchema({
     controlType: {
         type: String
     },
+    reportId: { // wird genutzt, wenn controltype = ctReport
+        type: String,
+        optional: true
+    },
     direction: {
         type: 'String', // vertical or horizontal für die Darstellung von Radio Buttons
         optional: true
@@ -49,6 +53,30 @@ export const LayoutElementsSchema = new SimpleSchema({
     'elements.$': {
         type: Object, //LayoutElementsSchema,
         blackbox: true,
+        optional: true
+    },
+    columns: { // für controlType ctColumns zur Darstellung von <Rows> <Cols>1</Cols> <Cols>2</Cols> </Rows>
+        type: Array,
+        optional: true
+    },
+    'columns.$': {
+        type: Object,
+        blackbox: true,
+    },
+    columnDetails: {
+        type: new SimpleSchema({
+            xs: { type: SimpleSchema.Integer, optional: true },
+            sm: { type: SimpleSchema.Integer, optional: true },
+            md: { type: SimpleSchema.Integer, optional: true },
+            lg: { type: SimpleSchema.Integer, optional: true },
+            xl: { type: SimpleSchema.Integer, optional: true },
+        }),
+        optional: true
+    },
+    googleMapDetails: { // wird benötigt bei controltype GoogleMaps
+        type: new SimpleSchema({
+            location: { type: String } // Funktion, welche den Location-string setzt als return-wert
+        }),
         optional: true
     }
 });

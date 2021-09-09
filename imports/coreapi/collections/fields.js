@@ -86,5 +86,9 @@ export const FieldSchema = new SimpleSchema({
             })
         }),
         label: 'Namen und Meldungstexte'
+    },
+    autoValue: { // funktion, die den Wert errechnet für dieses Feld
+        type: String,
+        optional: true
     }
 });

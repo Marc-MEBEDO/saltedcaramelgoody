@@ -27,7 +27,6 @@ export class ImageAnnotation extends React.Component {
                 if (this.imgRef.current)
                     this.imgRef.current.src = dataUrl;
 
-                //console.log( dataUrl );
                 const upload = Images.insert({
                     fileName: `${this.props.imageId}.jpg`,
                     file: dataUrl,
@@ -42,13 +41,10 @@ export class ImageAnnotation extends React.Component {
                 });
     
                 upload.on('end', (error, fileObj) => {
-                    //console.log('upload end', error, fileObj)
                     if (error) {
                         message.error(`Fehler beim Upload: ${error}`);
-                        //console.log(`Error during upload: ${error}`);
                     } else {
                         console.log(`File successfully uploaded`, fileObj);
-                        //console.log( this.props.imageId , ' | ' , state , fileObj._id );
 
                         Meteor.call( 'images.update.annotState' , this.props.imageId , state , fileObj._id , err => {
                             console.log( 'Update Image fertig' , err );

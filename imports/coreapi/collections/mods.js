@@ -290,14 +290,10 @@ Meteor.methods({
             moduleStore.update(recordId, {
                 $set: values
             });
-
-            console.log('BEFORE... onAfterUpdate:', values, oldValues);
             
             if (mod.methods && mod.methods.onAfterUpdate) {
                 let result;
                 afterUpdateHook = eval(mod.methods.onAfterUpdate);
-                
-                console.log('afterUpdateHook... onAfterUpdate:');
 
                 try {
                     result = afterUpdateHook(values, oldValues);

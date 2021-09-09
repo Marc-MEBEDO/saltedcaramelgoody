@@ -355,7 +355,6 @@ export const useAvatar = userId => useTracker( () => {
 
     const report = Reports.findOne(reportId);
     
-    console.log(report);
     if (report.columns) {
         report.columns = report.columns.map( c => {
             const fnCode = c.render;

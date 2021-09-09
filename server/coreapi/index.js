@@ -64,6 +64,15 @@ export const registerReport = r => {
         r.datasource = report.datasource.toString();
     }
 
+    if (report.liveData) {
+        
+        const subscriptionName = 'reports.' + reportId;
+        console.log('Register subscription for realtime-report', subscriptionName);
+        Meteor.publish(subscriptionName, report.liveData);
+        
+        r.liveData = report.liveData.toString();
+    }
+
     const old = Reports.findOne(reportId);
     if (old) {
         //delete r._id;
@@ -122,6 +131,8 @@ export const registerModule = m => {
             if (f.moduleDetails.link) f.moduleDetails.link = f.moduleDetails.link.toString();
         }
 
+        if (f.autoValue) f.autoValue = f.autoValue.toString();
+
         try {
             FieldSchema.validate(f);
         } catch (err) {
@@ -164,7 +175,7 @@ export const registerModule = m => {
             console.log('Validate layout ', layoutName);
 
             let l = m.layouts[layoutName];
-
+            
             if (!l.title) {
                 let result = actionName.replace( /([A-Z])/g, ' $1' );
                 l.title = result.charAt(0).toUpperCase() + result.slice(1);
@@ -181,6 +192,20 @@ export const registerModule = m => {
                         elem.title = m.fields[elem.field].title; 
                     }
 
+                    if (elem.columns) {
+                        elem.columns = elem.columns.map( col => {
+                            col.elements = validateLayoutElements(col.elements);
+                            return col;
+                        })
+                    }
+                    
+                    //console.log('XXXX', elem.googleMapDetails  )
+                    if (elem.googleMapDetails && elem.googleMapDetails.location) {
+
+                        elem.googleMapDetails.location = elem.googleMapDetails.location.toString();
+                        console.log(elem.googleMapDetails.location )
+                    }
+                    
                     LayoutElementsSchema.validate(elem);
 
                     if (elem.elements) 

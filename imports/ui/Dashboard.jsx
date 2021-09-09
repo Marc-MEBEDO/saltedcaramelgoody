@@ -34,7 +34,6 @@ export const GenericTableReport = ( { report }) => {
 
     if (reportData === null && firstTime /*&& static = true*/) {
         Meteor.call('reports.' + report._id, {}, (err, result) => {
-            console.log(err, result);
             if (err) {
                 // mach was um den Anwender zu informieren, dass ein Fehler aufgetreten ist
                 message.error(err.message);
@@ -78,7 +77,6 @@ export const GenericChart = ({element, options, chartType}) => {
     useEffect( () => {
         if (static && data === null) {
             Meteor.call('reports.' + report._id, params, (err, result) => {
-                console.log(report._id, err, result);
                 if (err) {
                     // mach was um den Anwender zu informieren, dass ein Fehler aufgetreten ist
                 } else {

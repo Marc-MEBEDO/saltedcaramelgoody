@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 
 import Collapse from 'antd/lib/collapse';
 import Form from 'antd/lib/form';
@@ -9,7 +9,9 @@ import Divider from 'antd/lib/divider';
 import Select from 'antd/lib/select';
 import Spin from 'antd/lib/spin';
 import List from 'antd/lib/list';
+import Skeleton from 'antd/lib/skeleton';
 import Avatar from 'antd/lib/avatar';
+import Table from 'antd/lib/table';
 import Image from 'antd/lib/image';
 import Button from 'antd/lib/button';
 
@@ -21,6 +23,10 @@ import Col from 'antd/lib/col';
 
 import DeleteOutlined from '@ant-design/icons/DeleteOutlined';
 
+
+import { withTracker } from 'meteor/react-meteor-data';
+import GoogleMapReact from 'google-map-react';
+
 const { Panel } = Collapse;
 const { Option } = Select;
 
@@ -28,30 +34,273 @@ import {
     ctCollapsible, ctInlineCombination,
     ctStringInput, ctOptionInput, ctDateInput,
     ctDivider,
-    ctSingleModuleOption
+    ctSingleModuleOption,
+    ctReport,
+    ctColumns,
+    ctGoogleMap
 } from '../../imports/coreapi/controltypes';
 
 import { debounce } from '../coreapi/helpers/basics';
 
-const getLabel = elem => {
-    return (elem.noTitle ? '' : elem.title);
+import { getModuleStore } from '../coreapi';
+import { check } from 'meteor/check';
+
+const getLabel = (elem, fields) => {
+    if (elem.noTitle) return '';
+
+    if (elem.title) return elem.title;
+
+    return fields[elem.field].title;
 }
 
-const LayoutElements = ({ elements, mod, mode }) => {
+const LayoutElements = ({ elements, mod, record, mode, onValuesChange }) => {
     return elements.map( (elem, index) => {
-        if (elem.controlType === ctStringInput ) return <StringInput key={index} elem={elem} mod={mod} mode={mode} />
-        if (elem.controlType === ctOptionInput ) return <OptionInput key={index} elem={elem} mod={mod} mode={mode} />
-        if (elem.controlType === ctDateInput ) return <DateInput key={index} elem={elem} mod={mod} mode={mode} />
+        if (elem.controlType === ctStringInput ) return <StringInput key={index} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctOptionInput ) return <OptionInput key={index} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctDateInput ) return <DateInput key={index} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
         
-        if (elem.controlType === ctCollapsible ) return <Collapsible key={index} elem={elem} mod={mod} mode={mode} />
-        if (elem.controlType === ctDivider ) return <DividerControl key={index} elem={elem} mod={mod} mode={mode} />
-        if (elem.controlType === ctInlineCombination ) return <InlineCombination key={index} elem={elem} mod={mod} mode={mode} />
+        if (elem.controlType === ctCollapsible ) return <Collapsible key={index} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctDivider ) return <DividerControl key={index} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctInlineCombination ) return <InlineCombination key={index} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
 
-        if (elem.controlType === ctSingleModuleOption ) return <SingleModuleOption key={index} elem={elem} mod={mod} mode={mode} />
+        if (elem.controlType === ctSingleModuleOption ) return <SingleModuleOption key={index} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
+
+        if (elem.controlType === ctReport ) return <ReportControl key={index} reportId={elem.reportId} title={elem.title} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctColumns ) return <ColumnsLayout key={index} elem={elem} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctGoogleMap ) return <GoogleMap key={index} elem={elem} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
 
         return null;
     });
 }
+
+const useOnce = callback => {
+    const [ firstime, setFirsttime ] = useState(true);
+
+    if (firstime) {
+        callback();
+        setFirsttime(false);
+    }
+}
+
+export const GoogleMap = ({ elem, mod, mode, record, onValuesChange }) => {
+    const height = '500px', width = '100%';
+    
+    const [location, setLocation] = useState('');
+    const computeLocation = eval(elem.googleMapDetails.location);
+
+    useOnce( () => {
+        const newLocation = computeLocation({ currentLocation:location, record, mode });
+        if (newLocation !== location) setLocation(newLocation);
+    });
+
+    onValuesChange( (changedValues, allValues) => {
+        const newLocation = computeLocation({ currentLocation:location, record, mode, allValues, changedValues });
+        if (newLocation !== location) setLocation(newLocation);
+    });
+
+
+    const encodedLocation = encodeURIComponent(location);
+    
+    return (
+        <div className="mapouter" style={{position:'relative',textAlign:'right', width, height}}>
+            <div className="gmap_canvas" style={{overflow:'hidden',background:'none!important', width, height}}>
+                <iframe width={width} height={height} id="gmap_canvas" src={"https://maps.google.com/maps?q=" + encodedLocation + "&t=&z=15&ie=UTF8&iwloc=&output=embed"} frameBorder="0" scrolling="no" marginHeight="0" marginWidth="0">
+                </iframe>
+                <br />
+                <a href="https://www.embedgooglemap.net">google html code</a>
+            </div>
+        </div>
+    );
+}
+
+export const ColumnsLayout = ({ elem, mod, mode, record, onValuesChange }) => {
+    const { columns } = elem;
+
+    return (
+        <Row gutter={8}>
+            { 
+                columns.map( (col, colIndex) => {
+                    const { columnDetails } = col;
+                    return (
+                        <Col key={colIndex} { ...columnDetails } >
+                            <LayoutElements elements={col.elements} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
+                        </Col>
+                    );
+                })
+            }
+        </Row>
+    )
+}
+
+export class ReportStatic extends React.Component {
+    state = {
+        loading: true,
+        data: []
+    }
+    /*constructor(props){
+        super (props);
+
+        const { elem, mod, mode } = props;
+
+        this.reportId = elem.reportId;
+
+        this.state = {
+            value: props.value || [],
+            reportDefinition: {},
+            fetchingDefinition: false,
+            data: [],
+            dataLoading: true
+        }
+    }
+
+    loadData() {
+        const { reportDefinition } = this.state;
+
+        if (reportDefinition.static) {
+            // static data > call once
+            Meteor.call('reports.' + this.reportId, this.props.record, (err, data) => {
+                if (err) {
+                    message.error('Es ist ein unbekannter Systemfehler aufgetreten. Bitte wenden Sie sich an den Systemadministrator.' + err.message);
+                    if (!this.unmounted) this.setState({ dataLoading: false });
+                } else {
+                    setTimeout( _ => {
+                        if (!this.unmounted) this.setState({ data, dataLoading: false });
+                    }, 500);
+                }
+            });    
+        } else {
+            const liveData = eval(reportDefinition.liveData);
+
+            // realtime > subscribe data
+            const v = useTracker( () => {
+                console.log('Run Tracker');
+                this.dataSubscription = Meteor.subscribe('reports.' + this.reportId);
+
+                const dataCursor = liveData(this.props.record);
+                
+                this.setState({ data: dataCursor.fetching(), dataLoading: false });
+            });
+
+            console.log('ret from useTracker', v);
+        }
+    }*/
+
+    loadData() {
+        const reportId = this.props.report._id;
+        const { reportParams } = this.props;
+        
+        Meteor.call('reports.' + reportId, { ...reportParams }, (err, data) => {
+            if (err) {
+                message.error('Es ist ein unbekannter Systemfehler aufgetreten. Bitte wenden Sie sich an den Systemadministrator.' + err.message);
+                if (!this.unmounted) this.setState({ loading: false });
+            } else {
+                setTimeout( _ => {
+                    if (!this.unmounted) this.setState({ data, loading: false });
+                }, 500);
+            }
+        });
+    }
+
+    componentDidMount() {
+        this.loadData();
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (prevProps.reportParams !== this.props.reportParams) {
+            this.loadData();
+        }
+    }
+
+    componentWillUnmount() {
+		this.unmounted = true
+	}
+
+    render() {
+        const { type, columns, title } = this.props.report;
+        const { data, loading } = this.state;
+
+        if (loading) return <Skeleton />;
+
+        if (type == 'table') {
+            //const pagination = { defaultPageSize:2, position: ['none', 'none' /*'bottomRight'*/] }
+            const pagination = null; { position: ['none', 'none'] }
+            return <Table rowKey="_id" dataSource={data} columns={columns} title={() => title } pagination={pagination} bordered />
+        }
+
+        return <div>Unbekannter Reporttype</div>
+    }
+}
+
+export class ReportControl extends React.Component {
+    state = {
+        loading : true,
+        report: {}
+    }
+
+    componentDidMount() {
+        const { reportId } = this.props;
+        
+        Meteor.call('reports.getReportDefinition', { reportId }, (err, report) => {
+            if (err) {
+                message.error('Es ist ein unbekannter Systemfehler aufgetreten. Bitte wenden Sie sich an den Systemadministrator.' + err.message);
+                this.setState({ loading: false });
+            } else {
+                report.columns = report.columns.map( c => {
+                    const fnCode = c.render;
+                    if (fnCode) {
+                        c.render = function renderColumn(col, doc) {
+                            let renderer = eval(fnCode);
+                            return renderer(col, doc, report.additionalData || {});
+                        }
+                    };
+                    
+                    return c;
+                });
+                this.setState({ report, loading: false });
+            }
+        });
+    }
+
+    render() {
+        const { loading, report } = this.state;
+        const { isStatic } = report;
+
+        if (loading) return <Skeleton />;
+
+        if (isStatic) return <ReportStatic report={report} reportParams={{record: this.props.record}} />
+
+        return <ReportLiveData report={report} reportParams={{record: this.props.record}} />
+    }
+}
+
+class ReportLiveDataControl extends React.Component {
+    render() {
+        const { data, loading, report } = this.props;
+        const { type, columns, title } = report;
+
+        if (loading) return <Skeleton />;
+
+        if (type == 'table') {
+            return <Table rowKey="_id" dataSource={data} columns={columns} title={() => title + '(R)' } bordered />
+        }
+
+        return <div>Unbekannter Reporttype</div>
+    }
+}
+
+export const ReportLiveData = withTracker( ({ report, reportParams }) => {
+    const { _id, liveData } = report;
+
+    fnLiveData = eval(liveData);
+    
+    const subscription = Meteor.subscribe('reports.' + _id, reportParams);
+   
+    return {
+        loading: !subscription.ready(),
+        data: fnLiveData(reportParams).fetch()
+    };
+})(ReportLiveDataControl);
+
 
 class ModuleListInput extends React.Component {
     constructor(props){
@@ -183,7 +432,7 @@ class ModuleListInput extends React.Component {
     }
 }
 
-const SingleModuleOption = ({ elem, mod, mode }) => {
+const SingleModuleOption = ({ elem, mod, mode, onValuesChange }) => {
     const [ fetching, setFetching ] = useState(false);
     const [ options, setOptions ] = useState([]);
     const [ selectedValues, setSelectedValues ] = useState([]);
@@ -200,7 +449,7 @@ const SingleModuleOption = ({ elem, mod, mode }) => {
     return (
         <Fragment>
             <Form.Item 
-                label={getLabel(elem)}
+                label={getLabel(elem, mod.fields)}
                 name={elem.field}
                 //rules={rules}
             >
@@ -322,20 +571,20 @@ const SingleModuleOption = ({ elem, mod, mode }) => {
 }
 */
 
-const InlineCombination = ({ elem, mod, mode }) => {
+const InlineCombination = ({ elem, mod, mode, onValuesChange }) => {
     return (
         <Row className="ant-form-item" style={{ display: 'flex', flexFlow:'row wrap' }}>
-            <Col span={4} className="ant-form-item-label">
-                <label>{getLabel(elem)}</label>
+            <Col span={6} className="ant-form-item-label">
+                <label>{getLabel(elem, mod.fields)}</label>
             </Col>
             <Col className="ant-form-item-control" style={{ display: 'flex', flexFlow:'row wrap' }}>
-                <LayoutElements elements={elem.elements} mod={mod} mode={mode} />
+                <LayoutElements elements={elem.elements} mod={mod} mode={mode} onValuesChange={onValuesChange} />
             </Col>
         </Row>
     )
 }
 
-const OptionInput = ({ elem, mod, mode }) => {
+const OptionInput = ({ elem, mod, mode, onValuesChange }) => {
     const { fields } = mod;
     let { rules } = fields[elem.field];
 
@@ -350,7 +599,7 @@ const OptionInput = ({ elem, mod, mode }) => {
     
     return (
         <Form.Item 
-            label={getLabel(elem)}
+            label={getLabel(elem, mod.fields)}
             name={elem.field}
             rules={rules}
         >            
@@ -363,9 +612,10 @@ const OptionInput = ({ elem, mod, mode }) => {
     )
 }
 
-const StringInput = ({ elem, mod, mode }) => {
+const StringInput = ({ elem, mod, mode, onValuesChange }) => {
     const { fields } = mod;
-    let { rules } = fields[elem.field];
+    const { field } = elem;
+    let { rules, autoValue } = fields[field];
 
     if (rules && rules.length) {
         rules = rules.map(r => {
@@ -375,10 +625,19 @@ const StringInput = ({ elem, mod, mode }) => {
             return r;
         });
     }
+    
+    if (autoValue) {
+        recomputeValue = eval(autoValue);
+        onValuesChange( (changedValues, allValues, setValue) => {            
+            const newValue = recomputeValue(changedValues, allValues);
+            if (allValues[field] !== newValue)
+                setValue(field, newValue);
+        })
+    }
 
     return (
         <Form.Item 
-            label={getLabel(elem)}
+            label={getLabel(elem, mod.fields)}
             name={elem.field}
             rules={rules}
         >
@@ -387,37 +646,37 @@ const StringInput = ({ elem, mod, mode }) => {
     )
 }
 
-const DateInput = ({ elem, mod, mode }) => {   
+const DateInput = ({ elem, mod, mode, onValuesChange }) => {   
     return (
-        <Form.Item label={getLabel(elem)}>
+        <Form.Item label={getLabel(elem, mod.fields)}>
             <DatePicker format='DD.MM.YYYY' />
         </Form.Item>
     )
 }
 
-const DividerControl = ({ elem, mod, mode }) => {
+const DividerControl = ({ elem, mod, mode, onValuesChange }) => {
     return (
         <Divider orientation={elem.orientation || 'left'} >{elem.title}</Divider>
     );
 }
 
-const Collapsible = ({ elem, mod, mode }) => {
+const Collapsible = ({ elem, mod, mode, onValuesChange }) => {
     return (
         <Collapse defaultActiveKey={elem.collapsedByDefault ? ['1'] : null}
             style={{marginBottom:16}}
         >
-            <Panel header={getLabel(elem)} key="1">
-                <LayoutElements elements={elem.elements} mod={mod} mode={mode} />
+            <Panel header={getLabel(elem, mod.fields)} key="1">
+                <LayoutElements elements={elem.elements} mod={mod} mode={mode} onValuesChange={onValuesChange} />
             </Panel>
         </Collapse>
     );
 }
 
-export const ModLayout = ({ product, mod, layoutName = 'default', mode }) => {
+export const ModLayout = ({ product, mod, record, layoutName = 'default', mode, onValuesChange }) => {
     // aktuell wird nur das default-layout unterstützt
     const layout = mod.layouts && (mod.layouts[layoutName] || mod.layouts.default);
     
     return (
-        <LayoutElements elements={layout.elements} mod={mod} mode={mode} />
+        <LayoutElements elements={layout.elements} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
     )
 }

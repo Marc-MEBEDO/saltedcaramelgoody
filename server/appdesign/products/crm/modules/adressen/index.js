@@ -4,12 +4,16 @@ import {
     ctStringInput, 
     ctCollapsible,
     ctInlineCombination,
-    ctOptionInput
+    ctOptionInput,
+    ctReport,
+    ctGoogleMap,
+    ctColumns
  } from '../../../../../../imports/coreapi/controltypes';
 
 import { ReportAdressenByKundenart } from './reports/AdressenByKundenart';
 import { ReportAnzahlAdressenByKundenart } from './reports/AnzahlAdressenByKundenart';
 import { ReportKontakteProAdresse } from './reports/KontakteProAdresse';
+import { ReportKontakteByAdresse, StaticReportKontakteByAdresse } from '../kontakte/reports/KontakteByAdresse';
 
 import { WidgetAnzahlKunden } from './widgets/AnzahlKunden';
 import { WidgetAnzahlHotels } from './widgets/AnzahlHotels';
@@ -57,6 +61,27 @@ export const Adressen = {
                     onUpdate: 'den Title'
                 }
             },*/
+            autoValue: (changedValues, allValues, setValue) => {
+                const { rufname, firma1, firma2, firma3, strasse, plz, ort} = allValues;
+                
+                let newValue = '';
+                if (rufname) {
+                    newValue = rufname;
+                 } else {
+                     newValue = firma1;
+                    if (firma2) newValue += ' ' + firma2;
+                    if (firma3) newValue += ' ' + firma3;
+                }
+                if (ort) newValue += ' (' + ort + ')';
+
+                return newValue;
+            },
+            ...defaultSecurityLevel
+        },
+
+        rufname: {
+            type: 'String',
+            ...FieldNamesAndMessages('der', 'Rufname', 'die', 'Rufnamen', { onUpdate: 'den Rufnamen' }),
             ...defaultSecurityLevel
         },
 
@@ -207,18 +232,46 @@ export const Adressen = {
             
             elements: [
                 { field: 'title', controlType: ctStringInput },
+                { field: 'rufname', controlType: ctStringInput },
                 { field: 'logoUri', controlType: ctStringInput },
                 { field: 'kundenart', controlType: ctOptionInput, values: Kundenarten, direction: 'vertical', defaultValue: 'kunde' },
-                { title: 'Anschriften', controlType: ctCollapsible, collapsedByDefault: true, elements: [
-                    {  field: 'firma1',  controlType: ctStringInput },
-                    {  field: 'firma2',  controlType: ctStringInput },
-                    {  field: 'firma3',  controlType: ctStringInput },
-                    {  field: 'strasse',  controlType: ctStringInput },
-                    {  title: 'PLZ', controlType: ctInlineCombination, elements: [
-                        { field: 'plz',  noTitle: true, controlType: ctStringInput },
-                        { field: 'ort',  controlType: ctStringInput },
+        
+                { controlType: ctColumns, columns: [
+                    { title: 'Anschriftsdaten', columnDetails: { xs:24, sm:24, md:12, lg:12, xl:16 },  elements: [
+                        { title: 'Anschriften', controlType: ctCollapsible, collapsedByDefault: true, elements: [
+                            {  field: 'firma1',  controlType: ctStringInput },
+                            {  field: 'firma2',  controlType: ctStringInput },
+                            {  field: 'firma3',  controlType: ctStringInput },
+                            {  field: 'strasse',  controlType: ctStringInput },
+                            {  title: 'PLZ', controlType: ctInlineCombination, elements: [
+                                { field: 'plz',  noTitle: true, controlType: ctStringInput },
+                                { field: 'ort',  controlType: ctStringInput },
+                            ]},
+                        ]},
                     ]},
+                    { title: 'Map', columnDetails: { xs:24, sm:24, md:12, lg:12, xl:8 }, elements: [
+                        { 
+                            title: 'Map', controlType: ctGoogleMap, 
+                            googleMapDetails: {
+                                location:  ({ currentLocation, record, mode, allValues, changeValues }) => {
+                                    const { firma1, firma2, firma3, strasse, plz, ort} = allValues || record;                                    
+                                    let newLocation = firma1 || '';
+
+                                    if (firma2) newLocation += ' ' + firma2;
+                                    if (firma3) newLocation += ' ' + firma3;
+                                    if (strasse) newLocation += ', ' + strasse;
+                                    if (plz) newLocation += ', ' + plz;
+                                    if (ort) newLocation += ' ' + ort;
+                
+                                    return newLocation;
+                                }
+                            }
+                        }
+                    ]}
                 ]},
+
+                { title: 'Ansprechpartner1', controlType: ctReport, reportId: StaticReportKontakteByAdresse._id },
+                { title: 'Ansprechpartner2', controlType: ctReport, reportId: ReportKontakteByAdresse._id },
 
                 { title: 'Kommunikation', controlType: ctCollapsible, collapsedByDefault: false, elements: [
                     {  field: 'telefon',  controlType: ctStringInput },
@@ -358,6 +411,8 @@ export const Adressen = {
     reports: [
         ReportAdressenByKundenart,
         ReportAnzahlAdressenByKundenart,
-        ReportKontakteProAdresse
+        ReportKontakteProAdresse,
+        ReportKontakteByAdresse,
+        StaticReportKontakteByAdresse
     ]
 }
