@@ -59,16 +59,37 @@ export const registerReport = r => {
         
         const methodName = 'reports.' + reportId;
         console.log('Register method for static report', methodName);
-        Meteor.methods({ [methodName]: report.datasource });
+        const fnDatasource = report.datasource;
+        Meteor.methods({ [methodName]: function(param) {
+            param = param || {};
+            param.isServer = true
+            param.datasource = this;
+            param.record = param.record || {};
+
+            const currentUser = Meteor.users.findOne(this.userId);
+            param.currentUser = currentUser;
+
+            return fnDatasource.apply(this, [param]); //report.datasource(param);
+        }})
         
         r.datasource = report.datasource.toString();
     }
 
     if (report.liveData) {
-        
         const subscriptionName = 'reports.' + reportId;
         console.log('Register subscription for realtime-report', subscriptionName);
-        Meteor.publish(subscriptionName, report.liveData);
+        const fnLiveData = report.liveData;
+        Meteor.publish(subscriptionName, function(param) {
+            param = param || {};
+            param.isServer = true
+            param.publication = this;
+            param.record = param.record || {};
+
+            const currentUser = Meteor.users.findOne(this.userId);
+            param.currentUser = currentUser;
+
+            fnLiveData.apply(this, [param]);
+        });
         
         r.liveData = report.liveData.toString();
     }
@@ -199,11 +220,8 @@ export const registerModule = m => {
                         })
                     }
                     
-                    //console.log('XXXX', elem.googleMapDetails  )
                     if (elem.googleMapDetails && elem.googleMapDetails.location) {
-
                         elem.googleMapDetails.location = elem.googleMapDetails.location.toString();
-                        console.log(elem.googleMapDetails.location )
                     }
                     
                     LayoutElementsSchema.validate(elem);

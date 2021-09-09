@@ -23,9 +23,7 @@ import Col from 'antd/lib/col';
 
 import DeleteOutlined from '@ant-design/icons/DeleteOutlined';
 
-
 import { withTracker } from 'meteor/react-meteor-data';
-import GoogleMapReact from 'google-map-react';
 
 const { Panel } = Collapse;
 const { Option } = Select;
@@ -42,8 +40,10 @@ import {
 
 import { debounce } from '../coreapi/helpers/basics';
 
-import { getModuleStore } from '../coreapi';
-import { check } from 'meteor/check';
+import { getModuleStore } from '../coreapi'; // wird für eval() funktionen benötigt
+import { check } from 'meteor/check'; // wird für eval() funktionen benötigt
+
+import { useOnce } from '../coreapi/helpers/react-hooks';
 
 const getLabel = (elem, fields) => {
     if (elem.noTitle) return '';
@@ -73,36 +73,47 @@ const LayoutElements = ({ elements, mod, record, mode, onValuesChange }) => {
     });
 }
 
-const useOnce = callback => {
-    const [ firstime, setFirsttime ] = useState(true);
-
-    if (firstime) {
-        callback();
-        setFirsttime(false);
-    }
-}
 
 export const GoogleMap = ({ elem, mod, mode, record, onValuesChange }) => {
     const height = '500px', width = '100%';
     
     const [location, setLocation] = useState('');
-    const computeLocation = eval(elem.googleMapDetails.location);
+    const [errEval, setErrEval] = useState('');
+
+    let computeLocation = function() {
+        console.warn('Die Funktion location für googleMaps lässt sich nicht evaluieren.\n' + errEval.message);
+        return '';
+    }
+
+    try {
+        computeLocation = eval(elem.googleMapDetails.location);
+    }
+    catch(err) {
+        setErrEval(err);
+    }
 
     useOnce( () => {
-        const newLocation = computeLocation({ currentLocation:location, record, mode });
-        if (newLocation !== location) setLocation(newLocation);
+        try {
+            const newLocation = computeLocation({ currentLocation:location, record, mode });
+            if (newLocation !== location) setLocation(newLocation);
+        } catch (err) {
+            console.warn('Die Funktion computeLocation für googleMaps ist fehlerhaft.\n' + err.message);
+        }
     });
 
     onValuesChange( (changedValues, allValues) => {
-        const newLocation = computeLocation({ currentLocation:location, record, mode, allValues, changedValues });
-        if (newLocation !== location) setLocation(newLocation);
+        try {
+            const newLocation = computeLocation({ currentLocation:location, record, mode, allValues, changedValues });
+            if (newLocation !== location) setLocation(newLocation);
+        } catch (err) {
+            console.warn('Die Funktion computeLocation für googleMaps ist fehlerhaft.\n' + err.message);
+        }
     });
-
 
     const encodedLocation = encodeURIComponent(location);
     
     return (
-        <div className="mapouter" style={{position:'relative',textAlign:'right', width, height}}>
+        <div className="mapouter" style={{position:'relative',textAlign:'right', width, height, marginBottom:16 }}>
             <div className="gmap_canvas" style={{overflow:'hidden',background:'none!important', width, height}}>
                 <iframe width={width} height={height} id="gmap_canvas" src={"https://maps.google.com/maps?q=" + encodedLocation + "&t=&z=15&ie=UTF8&iwloc=&output=embed"} frameBorder="0" scrolling="no" marginHeight="0" marginWidth="0">
                 </iframe>
@@ -137,53 +148,6 @@ export class ReportStatic extends React.Component {
         loading: true,
         data: []
     }
-    /*constructor(props){
-        super (props);
-
-        const { elem, mod, mode } = props;
-
-        this.reportId = elem.reportId;
-
-        this.state = {
-            value: props.value || [],
-            reportDefinition: {},
-            fetchingDefinition: false,
-            data: [],
-            dataLoading: true
-        }
-    }
-
-    loadData() {
-        const { reportDefinition } = this.state;
-
-        if (reportDefinition.static) {
-            // static data > call once
-            Meteor.call('reports.' + this.reportId, this.props.record, (err, data) => {
-                if (err) {
-                    message.error('Es ist ein unbekannter Systemfehler aufgetreten. Bitte wenden Sie sich an den Systemadministrator.' + err.message);
-                    if (!this.unmounted) this.setState({ dataLoading: false });
-                } else {
-                    setTimeout( _ => {
-                        if (!this.unmounted) this.setState({ data, dataLoading: false });
-                    }, 500);
-                }
-            });    
-        } else {
-            const liveData = eval(reportDefinition.liveData);
-
-            // realtime > subscribe data
-            const v = useTracker( () => {
-                console.log('Run Tracker');
-                this.dataSubscription = Meteor.subscribe('reports.' + this.reportId);
-
-                const dataCursor = liveData(this.props.record);
-                
-                this.setState({ data: dataCursor.fetching(), dataLoading: false });
-            });
-
-            console.log('ret from useTracker', v);
-        }
-    }*/
 
     loadData() {
         const reportId = this.props.report._id;
@@ -266,10 +230,16 @@ export class ReportControl extends React.Component {
         const { isStatic } = report;
 
         if (loading) return <Skeleton />;
+        
+        const reportParams = {
+            record: this.props.record || {}, 
+            mode: this.props.mode, 
+            isServer: false,
+            currentUser: Meteor.users.findOne(Meteor.userId())
+        }
+        if (isStatic) return <ReportStatic report={report} reportParams={reportParams} />
 
-        if (isStatic) return <ReportStatic report={report} reportParams={{record: this.props.record}} />
-
-        return <ReportLiveData report={report} reportParams={{record: this.props.record}} />
+        return <ReportLiveData report={report} reportParams={reportParams} />
     }
 }
 
@@ -288,7 +258,7 @@ class ReportLiveDataControl extends React.Component {
     }
 }
 
-export const ReportLiveData = withTracker( ({ report, reportParams }) => {
+export const ReportLiveData = withTracker( ({ report, mode, reportParams }) => {
     const { _id, liveData } = report;
 
     fnLiveData = eval(liveData);

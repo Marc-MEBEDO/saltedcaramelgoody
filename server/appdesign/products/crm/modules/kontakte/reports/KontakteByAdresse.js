@@ -45,8 +45,10 @@ export const ReportKontakteByAdresse = {
     
     isStatic: false,
 
-    liveData: ({ record }) => {
-        const { _id } = record;
+    liveData: ({ record, mode, isServer, publication, currentUser }) => {
+        if (mode === 'NEW' && isServer) return publication.ready();
+
+        const _id = record._id || '';
         check(_id, String);
 
         const Kontakte = getModuleStore('kontakte');
@@ -62,8 +64,12 @@ export const StaticReportKontakteByAdresse = {
     
     isStatic: true,
 
-    datasource: ({ record }) => {
-        const { _id } = record;
+    datasource: ({ record, mode, isServer, datasource }) => {
+        datasource.unblock();
+
+        if (mode === 'NEW') return [];
+        
+        const _id = record._id || '';
         check(_id, String);
 
         const Kontakte = getModuleStore('kontakte');
