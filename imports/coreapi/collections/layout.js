@@ -17,6 +17,14 @@ export const LayoutElementsSchema = new SimpleSchema({
     controlType: {
         type: String
     },
+    enabled: { // Funktion mit Rückgabe true/false, ob ein Control deaktiviert sein soll
+        type: String,
+        optional: true
+    },
+    visible: {// Funktion mit Rückgabe true/false, ob ein Control angezeigt wird oder nicht
+        type: String,
+        optional: true
+    },
     reportId: { // wird genutzt, wenn controltype = ctReport
         type: String,
         optional: true

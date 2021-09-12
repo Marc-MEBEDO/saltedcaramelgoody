@@ -1,6 +1,8 @@
 export const ctCollapsible = 'Collapsible';
 export const ctStringInput = 'String';
+export const ctHtmlInput = 'Html';
 export const ctDateInput = 'Date';
+export const ctDatespanInput = 'Datespan';
 export const ctInlineCombination = 'InlineCombination';
 export const ctOptionInput = 'Option';
 export const ctDivider = 'Divider';

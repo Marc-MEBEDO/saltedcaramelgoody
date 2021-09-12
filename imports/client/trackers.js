@@ -17,9 +17,12 @@ import { Mods } from '../coreapi/collections/mods';
 import { Reports } from '../coreapi/collections/reports';
 
 import { getModuleStore } from '../coreapi';
+import { isArray } from '../coreapi/helpers/basics';
 
 const notAuthorized = [ [] /*data*/, false /*loadin*/ ]
 const noDataAvailable = [ [] /*data*/ , true /*loading*/ ];
+
+import moment from 'moment';
 
 /**
  * Reactive current User Account
@@ -329,6 +332,18 @@ export const useAvatar = userId => useTracker( () => {
     }
 
     const doc = moduleStore.findOne(recordId);
+
+    // transform Date to moment
+    Object.keys(doc).forEach(propName => {
+        const v = doc[propName];
+        if (v && v instanceof Date) {
+            doc[propName] = moment(v);
+        } else if (v && isArray(v) && v.length > 0 && v[0] instanceof Date) {
+            v[0] = moment(v[0]);
+            v[1] = moment(v[1]);
+            doc[propName] = v;
+        }
+    });
 
     return [ doc, false ];
 }, [productId, moduleId, recordId, reloadRevision]);

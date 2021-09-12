@@ -70,7 +70,7 @@ export const registerReport = r => {
             param.currentUser = currentUser;
 
             return fnDatasource.apply(this, [param]); //report.datasource(param);
-        }})
+        }}) 
         
         r.datasource = report.datasource.toString();
     }
@@ -224,6 +224,14 @@ export const registerModule = m => {
                         elem.googleMapDetails.location = elem.googleMapDetails.location.toString();
                     }
                     
+                    if (elem.enabled) {
+                        elem.enabled = elem.enabled.toString();
+                    }
+
+                    if (elem.visible) {
+                        elem.visible = elem.visible.toString();
+                    }
+
                     LayoutElementsSchema.validate(elem);
 
                     if (elem.elements) 
@@ -253,6 +261,7 @@ export const registerModule = m => {
 
 
     if (m.methods) {
+        if (typeof m.methods.defaults === 'function') m.methods.defaults = m.methods.defaults.toString();
         if (typeof m.methods.onBeforeInsert === 'function') m.methods.onBeforeInsert = m.methods.onBeforeInsert.toString();
         if (typeof m.methods.onBeforeUpdate === 'function') m.methods.onBeforeUpdate = m.methods.onBeforeUpdate.toString();
         if (typeof m.methods.onBeforeRemove === 'function') m.methods.onBeforeRemove = m.methods.onBeforeRemove.toString();

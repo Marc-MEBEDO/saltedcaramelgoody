@@ -161,8 +161,10 @@ class ReactSummernote extends Component {
   toggleState(disabled) {
     if (disabled) {
       this.disable();
+      this.forceUpdate();
     } else {
       this.enable();
+      this.forceUpdate();
     }
   }
 
@@ -196,7 +198,7 @@ class ReactSummernote extends Component {
 
   render() {
     const { tag: Tag, children, className } = this.props;
-
+    
     return (
       <div className={className}>
         <Tag id={this.uid}>{children}</Tag>

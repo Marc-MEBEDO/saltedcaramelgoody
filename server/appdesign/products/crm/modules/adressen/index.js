@@ -61,7 +61,7 @@ export const Adressen = {
                     onUpdate: 'den Title'
                 }
             },*/
-            autoValue: (changedValues, allValues, setValue) => {
+            autoValue: ({changedValues, allValues}) => {
                 const { rufname, firma1, firma2, firma3, strasse, plz, ort} = allValues;
                 
                 let newValue = '';

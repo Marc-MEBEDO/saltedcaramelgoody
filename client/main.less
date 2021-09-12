@@ -713,11 +713,22 @@ a[href="https://markerjs.com/"] {
     &.SHOW {
         border: none;
         background-color: #fff;
-        font-weight: 600;
+        //font-weight: 600;
         color: #666;
     }
 }
 
+// für Summernote
+.ant-form-item-control-input-content {
+    >.SHOW {
+        .note-editor {
+            border: unset;
+
+            .note-toolbar { display:none }
+            .note-editable { padding:0; background-color: unset !important; }
+        }
+    }
+}
 
 .ant-radio-button-wrapper {
     margin: 4px

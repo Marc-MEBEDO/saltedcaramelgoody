@@ -82,6 +82,11 @@ export const ModuleSchema = new SimpleSchema({
     },
     methods: {
         type: new SimpleSchema({
+            defaults: {
+                type: String,
+                label: 'Defaultsdefinition',
+                optional: true
+            },
             onBeforeInsert: {
                 type: String,
                 label: 'Before Insert Hook',

@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { getModuleStore } from '../../imports/coreapi';
 
 import { Mods } from '../../imports/coreapi/collections/mods';
+import moment from 'moment'
 
 import SimpleSchema from 'simpl-schema';
 
@@ -83,5 +84,23 @@ Meteor.methods({
 
             return doc;
         });
+    },
+    'modules.getDefaults'(info) {
+        new SimpleSchema({
+            productId: { type: String },
+            moduleId: { type: String },
+            queryParams: { type: Object, blackbox: true, optional: true }
+        }).validate(info);
+
+        const { productId, moduleId, queryParams } = info;
+
+        const mod = Mods.findOne({ _id: moduleId });
+
+        if (mod && mod.methods && mod.methods.defaults) {
+            fnGetDefaults = eval(mod.methods.defaults);
+            return fnGetDefaults({queryParams, moment});
+        } else {
+            return null;
+        }
     }
 });

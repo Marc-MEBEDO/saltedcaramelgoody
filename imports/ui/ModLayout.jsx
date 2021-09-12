@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { Fragment, useEffect, useMemo, useState } from 'react';
 
 import Collapse from 'antd/lib/collapse';
 import Form from 'antd/lib/form';
@@ -22,8 +22,13 @@ import Row from 'antd/lib/row';
 import Col from 'antd/lib/col';
 
 import DeleteOutlined from '@ant-design/icons/DeleteOutlined';
+import { Summernote } from '../ui/components/Summernote';
 
 import { withTracker } from 'meteor/react-meteor-data';
+
+import moment from 'moment';
+import localization from 'moment/locale/de';
+
 
 const { Panel } = Collapse;
 const { Option } = Select;
@@ -35,7 +40,9 @@ import {
     ctSingleModuleOption,
     ctReport,
     ctColumns,
-    ctGoogleMap
+    ctGoogleMap,
+    ctHtmlInput,
+    ctDatespanInput
 } from '../../imports/coreapi/controltypes';
 
 import { debounce } from '../coreapi/helpers/basics';
@@ -43,7 +50,7 @@ import { debounce } from '../coreapi/helpers/basics';
 import { getModuleStore } from '../coreapi'; // wird für eval() funktionen benötigt
 import { check } from 'meteor/check'; // wird für eval() funktionen benötigt
 
-import { useOnce } from '../coreapi/helpers/react-hooks';
+import { useOnce, useWhenChanged } from '../coreapi/helpers/react-hooks';
 
 const getLabel = (elem, fields) => {
     if (elem.noTitle) return '';
@@ -54,20 +61,25 @@ const getLabel = (elem, fields) => {
 }
 
 const LayoutElements = ({ elements, mod, record, mode, onValuesChange }) => {
+    console.log('LayoutElements:', mode);
+
     return elements.map( (elem, index) => {
-        if (elem.controlType === ctStringInput ) return <StringInput key={index} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
-        if (elem.controlType === ctOptionInput ) return <OptionInput key={index} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
-        if (elem.controlType === ctDateInput ) return <DateInput key={index} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
+        const key = elem.field || index;
+        if (elem.controlType === ctStringInput ) return <StringInput key={key} elem={elem} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctHtmlInput ) return <HtmlInput key={key} elem={elem} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctOptionInput ) return <OptionInput key={key} elem={elem} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctDateInput ) return <DateInput key={key} elem={elem} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctDatespanInput ) return <DatespanInput key={key} elem={elem} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
         
-        if (elem.controlType === ctCollapsible ) return <Collapsible key={index} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
-        if (elem.controlType === ctDivider ) return <DividerControl key={index} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
-        if (elem.controlType === ctInlineCombination ) return <InlineCombination key={index} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctCollapsible ) return <Collapsible key={key} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctDivider ) return <DividerControl key={key} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctInlineCombination ) return <InlineCombination key={key} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
 
-        if (elem.controlType === ctSingleModuleOption ) return <SingleModuleOption key={index} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctSingleModuleOption ) return <SingleModuleOption key={key} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
 
-        if (elem.controlType === ctReport ) return <ReportControl key={index} reportId={elem.reportId} title={elem.title} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
-        if (elem.controlType === ctColumns ) return <ColumnsLayout key={index} elem={elem} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
-        if (elem.controlType === ctGoogleMap ) return <GoogleMap key={index} elem={elem} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctReport ) return <ReportControl key={key} reportId={elem.reportId} title={elem.title} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctColumns ) return <ColumnsLayout key={key} elem={elem} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctGoogleMap ) return <GoogleMap key={key} elem={elem} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
 
         return null;
     });
@@ -402,7 +414,7 @@ class ModuleListInput extends React.Component {
     }
 }
 
-const SingleModuleOption = ({ elem, mod, mode, onValuesChange }) => {
+const SingleModuleOption = ({ elem, mod, mode, record, onValuesChange }) => {
     const [ fetching, setFetching ] = useState(false);
     const [ options, setOptions ] = useState([]);
     const [ selectedValues, setSelectedValues ] = useState([]);
@@ -432,6 +444,7 @@ const SingleModuleOption = ({ elem, mod, mode, onValuesChange }) => {
                     targetModuleId={targetModuleId}
 
                     mode={mode}
+                    record={record}
 
                     hasDescription={field.moduleDetails.hasDescription}
                     hasImage={field.moduleDetails.hasImage}
@@ -443,149 +456,36 @@ const SingleModuleOption = ({ elem, mod, mode, onValuesChange }) => {
     )
 }
 
-/*
-const SingleModuleOption = ({ elem, mod, mode }) => {
-    const [ fetching, setFetching ] = useState(false);
-    const [ options, setOptions ] = useState([]);
-    const [ selectedValues, setSelectedValues ] = useState([]);
-    const [ enteredValue, setEnteredValue ] = useState('');
 
-    const { _id, productId } = mod
-    const moduleId = _id;
-    const fieldId = elem.field;
-
-    const field = mod.fields[elem.field];
-    const
-        targetProductId = field.productId,
-        targetModuleId = field.moduleId;
-
-    const onSearch = debounce( value => {
-        Meteor.call('modules.getModuleOptions', { productId, moduleId, fieldId, mode, value, selectedValues }, (err, options) => {
-            if (err) {
-                message.error('Es ist ein unbekannter Systemfehler aufgetreten. Bitte wenden Sie sich an den Systemadministrator.' + err.message);
-            } else {
-                setOptions(options);
-            }
-            setFetching(false);
-        });
-    }, 600, false, () => {
-        setFetching(true);
-    });
-
-    const onChange = v => {        
-        let description = '';
-        let logoUri = null;
-
-        const found = options.find( i => i._id === v.value );
-        
-        if (found) {
-            description = found.firma1 + ' • ' + found.strasse + ' • ' + found.plz + ' ' + found.ort;
-            logoUri = found.logoUri;
-        }
-
-        const newItem = { 
-            _id: v.value, 
-            title: v.label, 
-            logoUri: logoUri,
-            description,
-            link: `/records/${targetProductId}/${targetModuleId}/${v.value}`
-        }
-
-        setSelectedValues(
-            selectedValues.concat([ newItem ])
-        );
-        setEnteredValue('');
-    }
-
-    return (
-        <Fragment>
-            <Form.Item 
-                label={getLabel(elem)}
-                name={elem.field}
-                //rules={rules}
-            >
-                <List
-                    itemLayout="horizontal"
-                    dataSource={selectedValues}
-                    renderItem={ item => 
-                        <List.Item >
-                            <List.Item.Meta
-                                avatar={<Image src={item.logoUri} width={32} />}
-                                title={
-                                    item.link ? <a href={item.link}>{item.title}</a> : item.titel 
-                                }
-                                description={item.description}
-                            />
-                        </List.Item>
-                    }
-                />
-
-                <Select
-                    labelInValue
-                    showSearch
-                    //mode="multiple"
-                    //tagRender={itemRender}
-                    value={enteredValue}
-                    filterOption={false}
-                    onSearch={onSearch}
-                    onChange={onChange}
-                    loading={fetching}
-                    notFoundContent={fetching ? <Spin size="small" /> : null}
-                >
-                    { options.map( ({ _id, title }) => <Option key={_id} value={_id}>{title}</Option> ) }
-                </Select>
-            </Form.Item>
-
-        </Fragment>
-    )
-}
-*/
-
-const InlineCombination = ({ elem, mod, mode, onValuesChange }) => {
+const InlineCombination = ({ elem, mod, mode, record, onValuesChange }) => {
     return (
         <Row className="ant-form-item" style={{ display: 'flex', flexFlow:'row wrap' }}>
             <Col span={6} className="ant-form-item-label">
                 <label>{getLabel(elem, mod.fields)}</label>
             </Col>
             <Col className="ant-form-item-control" style={{ display: 'flex', flexFlow:'row wrap' }}>
-                <LayoutElements elements={elem.elements} mod={mod} mode={mode} onValuesChange={onValuesChange} />
+                <LayoutElements elements={elem.elements} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
             </Col>
         </Row>
     )
 }
 
-const OptionInput = ({ elem, mod, mode, onValuesChange }) => {
+const GenericInputWrapper = ({ elem, mod, mode, onValuesChange, record, children }) => {
     const { fields } = mod;
-    let { rules } = fields[elem.field];
-
-    if (rules && rules.length) {
-        rules = rules.map(r => {
-            if (r.customValidator) {
-                return eval(r.customValidator);
-            }
-            return r;
-        });
-    }
-    
-    return (
-        <Form.Item 
-            label={getLabel(elem, mod.fields)}
-            name={elem.field}
-            rules={rules}
-        >            
-            <Radio.Group buttonStyle="outline" disabled={mode==='SHOW'}>
-                <Space direction="horizontal">
-                    { elem.values.map( v => <Radio.Button style={{['--radio-color']:v.color, ['--radio-bgcolor']:v.backgroundColor}} key={v._id} value={v._id} >{v.title}</Radio.Button> )}
-                </Space>
-            </Radio.Group>
-        </Form.Item>
-    )
-}
-
-const StringInput = ({ elem, mod, mode, onValuesChange }) => {
-    const { fields } = mod;
-    const { field } = elem;
+    const { field, enabled, visible } = elem;
     let { rules, autoValue } = fields[field];
+    const [disabled, setDisabled] = useState(mode === 'SHOW');
+    const isEnabled = useMemo( () => (enabled ? eval(enabled) : () => true), [enabled] );
+
+    useWhenChanged(mode, () => {       
+        if (mode == 'EDIT') {
+            // initialer Aufruf, wenn man aus dem SHOW in den EDIT-mode geht
+            const d = !isEnabled({ allValues: record, mode, moment });
+            if (d != disabled) setDisabled(d);
+        } else if ( mode == 'SHOW' ) {
+            if (!disabled) setDisabled(true);
+        }
+    });
 
     if (rules && rules.length) {
         rules = rules.map(r => {
@@ -599,44 +499,129 @@ const StringInput = ({ elem, mod, mode, onValuesChange }) => {
     if (autoValue) {
         recomputeValue = eval(autoValue);
         onValuesChange( (changedValues, allValues, setValue) => {            
-            const newValue = recomputeValue(changedValues, allValues);
-            if (allValues[field] !== newValue)
-                setValue(field, newValue);
-        })
+            const newValue = recomputeValue({changedValues, allValues, moment});
+            //if (allValues[field] !== newValue)
+                //setValue(field, newValue);
+        });
     }
+
+    if (enabled && mode !== 'SHOW') {
+        // immer dann aufrufen, wenn sich Werte geändert haben
+        onValuesChange( (changedValues, allValues, setValue) => {            
+            const d = !isEnabled({changedValues, allValues, mode, moment});
+            if (d != disabled) setDisabled(d);
+        });
+    }
+
+    if (field == 'title') console.log('render title', disabled)
 
     return (
         <Form.Item 
             label={getLabel(elem, mod.fields)}
-            name={elem.field}
+            name={field}
             rules={rules}
         >
-            <Input className={mode} disabled={mode==='SHOW'} />
+            { 
+                React.cloneElement(children, { className: mode, disabled })
+            }
         </Form.Item>
-    )
+    );
 }
 
-const DateInput = ({ elem, mod, mode, onValuesChange }) => {   
+const StringInput = props => {
+    const { mode } = props;
+
     return (
-        <Form.Item label={getLabel(elem, mod.fields)}>
+        <GenericInputWrapper {...props} >
+            <Input  />
+        </GenericInputWrapper>
+    );
+}
+
+const DateInput = props => {   
+    const { mode } = props;
+
+    return (
+        <GenericInputWrapper {...props} >
             <DatePicker format='DD.MM.YYYY' />
-        </Form.Item>
+        </GenericInputWrapper>
+    );
+}
+
+const DatespanInput = props => {
+    const { mode } = props;
+
+    return (
+        <GenericInputWrapper {...props} >
+            <DatePicker.RangePicker format='DD.MM.YYYY'  />
+        </GenericInputWrapper>
+    );
+}
+
+
+const HtmlInput = props => {
+    const options = { 
+        //airMode: true, 
+        popover: {
+            image: [
+                ['image', ['resizeFull', 'resizeHalf', 'resizeQuarter', 'resizeNone']],
+                ['float', ['floatLeft', 'floatRight', 'floatNone']],
+                ['remove', ['removeMedia']]
+            ],
+            link: [
+                ['link', ['linkDialogShow', 'unlink']]
+            ],
+            table: [
+                ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
+                ['delete', ['deleteRow', 'deleteCol', 'deleteTable']],
+            ],
+            air: [
+                ['font', ['bold', 'underline', 'italic', 'superscript']],
+                ['font1', ['clear']],
+                ['color', ['forecolor', 'backcolor']],
+                ['para', ['ul', 'ol']],
+                ['para1', ['paragraph']],
+                ['table', ['table']],
+                ['link', ['linkDialogShow', 'unlink']],
+                ['view', ['fullscreen', 'codeview']]
+            ]
+        }  
+    };
+    
+    return (
+        <GenericInputWrapper {...props} >
+            <Summernote options={options} />  
+        </GenericInputWrapper>
     )
 }
 
-const DividerControl = ({ elem, mod, mode, onValuesChange }) => {
+const OptionInput = props => {
+    const { mode, elem } = props;
+
+    return (
+        <GenericInputWrapper {...props} >
+            <Radio.Group buttonStyle="outline" disabled={mode==='SHOW'}>
+                <Space direction={elem.direction || 'horizontal'}>
+                    { elem.values.map( v => <Radio.Button style={{['--radio-color']:v.color, ['--radio-bgcolor']:v.backgroundColor}} key={v._id} value={v._id} >{v.title}</Radio.Button> )}
+                </Space>
+            </Radio.Group>
+        </GenericInputWrapper>
+    )
+}
+
+const DividerControl = ({ elem, mod, mode, record, onValuesChange }) => {
     return (
         <Divider orientation={elem.orientation || 'left'} >{elem.title}</Divider>
     );
 }
 
-const Collapsible = ({ elem, mod, mode, onValuesChange }) => {
+const Collapsible = ({ elem, mod, mode, record, onValuesChange }) => {
     return (
         <Collapse defaultActiveKey={elem.collapsedByDefault ? ['1'] : null}
             style={{marginBottom:16}}
         >
             <Panel header={getLabel(elem, mod.fields)} key="1">
-                <LayoutElements elements={elem.elements} mod={mod} mode={mode} onValuesChange={onValuesChange} />
+                <LayoutElements elements={elem.elements} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
             </Panel>
         </Collapse>
     );

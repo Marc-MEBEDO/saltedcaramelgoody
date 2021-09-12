@@ -2,20 +2,20 @@ import { registerApplication } from '../coreapi';
 
 import { Crm } from './products/crm';
 import { Beratung } from './products/beratung';
-import { Seminare } from './products/seminare';
 import { Hr } from './products/hr';
+import { Akademie } from './products/akademie';
 
 const Application = {
-    _id: 'meinmebedo',
+    _id: 'mebedo.world',
 
-    title: 'MEIN MEBEDO',
+    title: 'MEBEDO.world',
     description: 'Alles was wir innerhalb der MEBEDO zum leben und arbeiten benötigen.',
 
     products: [
         Hr,
         Crm,
         Beratung,
-        Seminare,
+        Akademie,
     ]
 }
 
