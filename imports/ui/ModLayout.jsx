@@ -45,7 +45,7 @@ import {
     ctDatespanInput
 } from '../../imports/coreapi/controltypes';
 
-import { debounce } from '../coreapi/helpers/basics';
+import { debounce, deepClone } from '../coreapi/helpers/basics';
 
 import { getModuleStore } from '../coreapi'; // wird für eval() funktionen benötigt
 import { check } from 'meteor/check'; // wird für eval() funktionen benötigt
@@ -61,10 +61,9 @@ const getLabel = (elem, fields) => {
 }
 
 const LayoutElements = ({ elements, mod, record, mode, onValuesChange }) => {
-    console.log('LayoutElements:', mode);
-
     return elements.map( (elem, index) => {
         const key = elem.field || index;
+
         if (elem.controlType === ctStringInput ) return <StringInput key={key} elem={elem} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
         if (elem.controlType === ctHtmlInput ) return <HtmlInput key={key} elem={elem} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
         if (elem.controlType === ctOptionInput ) return <OptionInput key={key} elem={elem} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
@@ -165,12 +164,15 @@ export class ReportStatic extends React.Component {
         const reportId = this.props.report._id;
         const { reportParams } = this.props;
         
-        Meteor.call('reports.' + reportId, { ...reportParams }, (err, data) => {
+        let clonedReportParams = deepClone(reportParams, { transformDate: true, deleteCurrentUser: true });
+
+        Meteor.call('reports.' + reportId,  { ...clonedReportParams }, (err, data) => {
             if (err) {
                 message.error('Es ist ein unbekannter Systemfehler aufgetreten. Bitte wenden Sie sich an den Systemadministrator.' + err.message);
                 if (!this.unmounted) this.setState({ loading: false });
             } else {
-                setTimeout( _ => {
+                setTimeout( () => {
+                    console.log(data)
                     if (!this.unmounted) this.setState({ data, loading: false });
                 }, 500);
             }
@@ -199,7 +201,7 @@ export class ReportStatic extends React.Component {
 
         if (type == 'table') {
             //const pagination = { defaultPageSize:2, position: ['none', 'none' /*'bottomRight'*/] }
-            const pagination = null; { position: ['none', 'none'] }
+            const pagination = { position: ['none', 'none'] }
             return <Table rowKey="_id" dataSource={data} columns={columns} title={() => title } pagination={pagination} bordered />
         }
 
@@ -208,18 +210,25 @@ export class ReportStatic extends React.Component {
 }
 
 export class ReportControl extends React.Component {
-    state = {
-        loading : true,
-        report: {}
+    constructor(props) {
+        super(props);
+        
+        this.unmounted = true
+
+        this.state = {
+            loading : true,
+            report: {}
+        };
     }
 
     componentDidMount() {
         const { reportId } = this.props;
         
+        this.unmounted = false;
         Meteor.call('reports.getReportDefinition', { reportId }, (err, report) => {
             if (err) {
                 message.error('Es ist ein unbekannter Systemfehler aufgetreten. Bitte wenden Sie sich an den Systemadministrator.' + err.message);
-                this.setState({ loading: false });
+                if (!this.unmounted) this.setState({ loading: false });
             } else {
                 report.columns = report.columns.map( c => {
                     const fnCode = c.render;
@@ -232,22 +241,28 @@ export class ReportControl extends React.Component {
                     
                     return c;
                 });
-                this.setState({ report, loading: false });
+
+                if (!this.unmounted) {
+                    this.setState({ report, loading: false });
+                }
             }
         });
     }
 
+    componentWillUnmount() {
+		this.unmounted = true
+	}
+
     render() {
         const { loading, report } = this.state;
         const { isStatic } = report;
-
+        
         if (loading) return <Skeleton />;
         
         const reportParams = {
-            record: this.props.record || {}, 
+            record: this.props.record || {},
             mode: this.props.mode, 
             isServer: false,
-            currentUser: Meteor.users.findOne(Meteor.userId())
         }
         if (isStatic) return <ReportStatic report={report} reportParams={reportParams} />
 
@@ -275,12 +290,12 @@ export const ReportLiveData = withTracker( ({ report, mode, reportParams }) => {
 
     fnLiveData = eval(liveData);
     
-    const subscription = Meteor.subscribe('reports.' + _id, reportParams);
+    /*const subscription = Meteor.subscribe('reports.' + _id, reportParams);
    
     return {
         loading: !subscription.ready(),
         data: fnLiveData(reportParams).fetch()
-    };
+    };*/
 })(ReportLiveDataControl);
 
 
@@ -484,6 +499,9 @@ const GenericInputWrapper = ({ elem, mod, mode, onValuesChange, record, children
             if (d != disabled) setDisabled(d);
         } else if ( mode == 'SHOW' ) {
             if (!disabled) setDisabled(true);
+        } else {
+            // NEW
+            
         }
     });
 
@@ -500,8 +518,8 @@ const GenericInputWrapper = ({ elem, mod, mode, onValuesChange, record, children
         recomputeValue = eval(autoValue);
         onValuesChange( (changedValues, allValues, setValue) => {            
             const newValue = recomputeValue({changedValues, allValues, moment});
-            //if (allValues[field] !== newValue)
-                //setValue(field, newValue);
+            if (allValues[field] !== newValue)
+                setValue(field, newValue);
         });
     }
 
@@ -512,8 +530,6 @@ const GenericInputWrapper = ({ elem, mod, mode, onValuesChange, record, children
             if (d != disabled) setDisabled(d);
         });
     }
-
-    if (field == 'title') console.log('render title', disabled)
 
     return (
         <Form.Item 

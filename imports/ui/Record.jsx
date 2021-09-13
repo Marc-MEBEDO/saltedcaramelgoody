@@ -226,7 +226,7 @@ export const Record = ({ params, currentUser, mode }) => {
         valuesChangeHooks.forEach(fn => fn(changedValues, allValues, setValue));
     }
 
-    console.log('Render Record', recordMode);
+    //console.log('Render Record', recordMode);
 
     return (
         <Fragment>

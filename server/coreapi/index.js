@@ -60,7 +60,10 @@ export const registerReport = r => {
         const methodName = 'reports.' + reportId;
         console.log('Register method for static report', methodName);
         const fnDatasource = report.datasource;
+        
         Meteor.methods({ [methodName]: function(param) {
+            console.log('Enter datasource', methodName, param)
+
             param = param || {};
             param.isServer = true
             param.datasource = this;
@@ -69,8 +72,8 @@ export const registerReport = r => {
             const currentUser = Meteor.users.findOne(this.userId);
             param.currentUser = currentUser;
 
-            return fnDatasource.apply(this, [param]); //report.datasource(param);
-        }}) 
+            return fnDatasource.apply(this, [param]);
+        }})
         
         r.datasource = report.datasource.toString();
     }
@@ -80,6 +83,8 @@ export const registerReport = r => {
         console.log('Register subscription for realtime-report', subscriptionName);
         const fnLiveData = report.liveData;
         Meteor.publish(subscriptionName, function(param) {
+            console.log('Enter Publication', subscriptionName, param)
+
             param = param || {};
             param.isServer = true
             param.publication = this;
@@ -88,7 +93,7 @@ export const registerReport = r => {
             const currentUser = Meteor.users.findOne(this.userId);
             param.currentUser = currentUser;
 
-            fnLiveData.apply(this, [param]);
+            return fnLiveData.apply(this, [param]);
         });
         
         r.liveData = report.liveData.toString();
