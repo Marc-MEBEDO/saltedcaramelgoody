@@ -60,32 +60,32 @@ const getLabel = (elem, fields) => {
     return fields[elem.field].title;
 }
 
-const LayoutElements = ({ elements, mod, record, mode, onValuesChange }) => {
+const LayoutElements = ({ elements, mod, defaults, record, mode, onValuesChange }) => {
     return elements.map( (elem, index) => {
         const key = elem.field || index;
 
-        if (elem.controlType === ctStringInput ) return <StringInput key={key} elem={elem} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
-        if (elem.controlType === ctHtmlInput ) return <HtmlInput key={key} elem={elem} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
-        if (elem.controlType === ctOptionInput ) return <OptionInput key={key} elem={elem} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
-        if (elem.controlType === ctDateInput ) return <DateInput key={key} elem={elem} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
-        if (elem.controlType === ctDatespanInput ) return <DatespanInput key={key} elem={elem} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctStringInput ) return <StringInput key={key} elem={elem} mod={mod} mode={mode} defaults={defaults} record={record} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctHtmlInput ) return <HtmlInput key={key} elem={elem} mod={mod} mode={mode} defaults={defaults} record={record} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctOptionInput ) return <OptionInput key={key} elem={elem} mod={mod} mode={mode} defaults={defaults} record={record} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctDateInput ) return <DateInput key={key} elem={elem} mod={mod} mode={mode} defaults={defaults} record={record} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctDatespanInput ) return <DatespanInput key={key} elem={elem} mod={mod} mode={mode} defaults={defaults} record={record} onValuesChange={onValuesChange} />
         
-        if (elem.controlType === ctCollapsible ) return <Collapsible key={key} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
-        if (elem.controlType === ctDivider ) return <DividerControl key={key} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
-        if (elem.controlType === ctInlineCombination ) return <InlineCombination key={key} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctCollapsible ) return <Collapsible key={key} elem={elem} mod={mod} mode={mode} defaults={defaults} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctDivider ) return <DividerControl key={key} elem={elem} mod={mod} mode={mode} defaults={defaults} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctInlineCombination ) return <InlineCombination key={key} elem={elem} mod={mod} defaults={defaults} mode={mode} onValuesChange={onValuesChange} />
 
-        if (elem.controlType === ctSingleModuleOption ) return <SingleModuleOption key={key} elem={elem} mod={mod} mode={mode} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctSingleModuleOption ) return <SingleModuleOption key={key} elem={elem} mod={mod} mode={mode} defaults={defaults} onValuesChange={onValuesChange} />
 
-        if (elem.controlType === ctReport ) return <ReportControl key={key} reportId={elem.reportId} title={elem.title} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
-        if (elem.controlType === ctColumns ) return <ColumnsLayout key={key} elem={elem} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
-        if (elem.controlType === ctGoogleMap ) return <GoogleMap key={key} elem={elem} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctReport ) return <ReportControl key={key} reportId={elem.reportId} title={elem.title} mod={mod} mode={mode} defaults={defaults} record={record} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctColumns ) return <ColumnsLayout key={key} elem={elem} mod={mod} mode={mode} defaults={defaults} record={record} onValuesChange={onValuesChange} />
+        if (elem.controlType === ctGoogleMap ) return <GoogleMap key={key} elem={elem} mod={mod} mode={mode} defaults={defaults} record={record} onValuesChange={onValuesChange} />
 
         return null;
     });
 }
 
 
-export const GoogleMap = ({ elem, mod, mode, record, onValuesChange }) => {
+export const GoogleMap = ({ elem, mod, mode, defaults, record, onValuesChange }) => {
     const height = '500px', width = '100%';
     
     const [location, setLocation] = useState('');
@@ -135,7 +135,7 @@ export const GoogleMap = ({ elem, mod, mode, record, onValuesChange }) => {
     );
 }
 
-export const ColumnsLayout = ({ elem, mod, mode, record, onValuesChange }) => {
+export const ColumnsLayout = ({ elem, mod, mode, defaults, record, onValuesChange }) => {
     const { columns } = elem;
 
     return (
@@ -171,10 +171,9 @@ export class ReportStatic extends React.Component {
                 message.error('Es ist ein unbekannter Systemfehler aufgetreten. Bitte wenden Sie sich an den Systemadministrator.' + err.message);
                 if (!this.unmounted) this.setState({ loading: false });
             } else {
-                setTimeout( () => {
-                    console.log(data)
+                //setTimeout( () => {
                     if (!this.unmounted) this.setState({ data, loading: false });
-                }, 500);
+                //}, 500);
             }
         });
     }
@@ -260,6 +259,7 @@ export class ReportControl extends React.Component {
         if (loading) return <Skeleton />;
         
         const reportParams = {
+            defaults: this.props.defaults || {},
             record: this.props.record || {},
             mode: this.props.mode, 
             isServer: false,
@@ -290,12 +290,12 @@ export const ReportLiveData = withTracker( ({ report, mode, reportParams }) => {
 
     fnLiveData = eval(liveData);
     
-    /*const subscription = Meteor.subscribe('reports.' + _id, reportParams);
+    const subscription = Meteor.subscribe('reports.' + _id, reportParams);
    
     return {
         loading: !subscription.ready(),
         data: fnLiveData(reportParams).fetch()
-    };*/
+    };
 })(ReportLiveDataControl);
 
 
@@ -336,7 +336,7 @@ class ModuleListInput extends React.Component {
         }
     }
 
-    onSelectChange(selectedId) {        
+    onSelectChange(selectedId) {
         const { options, value } = this.state;
         const { targetProductId, targetModuleId } = this.props;
 
@@ -367,14 +367,14 @@ class ModuleListInput extends React.Component {
 
     render() {
         const { currentInput, value, options, fetching } = this.state;
-        const { hasDescription, hasImage, linkable, mode } = this.props;
+        const { hasDescription, hasImage, linkable, mode, maxItems = 999 } = this.props;
 
         const onSearch = this.onSearch.bind(this);
         const onChange = this.onSelectChange.bind(this);
         const removeSeletedItem = this.removeSeletedItem.bind(this);
 
         const getActionButtons = item => {
-            if (mode === 'EDIT') 
+            if (mode === 'EDIT' || mode === 'NEW') 
                 return [
                     <Button type="link" onClick={ _ => removeSeletedItem(item) } icon={<DeleteOutlined />} ></Button>
                 ]
@@ -400,7 +400,7 @@ class ModuleListInput extends React.Component {
                 }
             />
 
-            { mode === 'SHOW' ? null :
+            { mode === 'SHOW' || value.length >= maxItems ? null :
                 <Select
                     ref={this.selectRef}
                     showSearch
@@ -415,7 +415,7 @@ class ModuleListInput extends React.Component {
                         options.map( ({ _id, title, imageUrl, description }) => {
                             return (
                                 <Option key={_id} value={_id}>
-                                    { hasImage ? <Image src={imageUrl} width={32} /> : null }
+                                    { hasImage ? <Image src={imageUrl} width={48} style={{marginRight:8}} /> : null }
                                     <span>{title}</span>
                                     { hasDescription ? <br /> : null }
                                     { hasDescription ? <span style={{fontSize:10,color:'#ccc'}}>{description}</span> : null }
@@ -429,11 +429,11 @@ class ModuleListInput extends React.Component {
     }
 }
 
-const SingleModuleOption = ({ elem, mod, mode, record, onValuesChange }) => {
-    const [ fetching, setFetching ] = useState(false);
+const SingleModuleOption = ({ elem, mod, mode, defaults, record, onValuesChange }) => {
+    /*const [ fetching, setFetching ] = useState(false);
     const [ options, setOptions ] = useState([]);
     const [ selectedValues, setSelectedValues ] = useState([]);
-    const [ enteredValue, setEnteredValue ] = useState('');
+    const [ enteredValue, setEnteredValue ] = useState('');*/
 
     const { _id, productId } = mod
     const moduleId = _id;
@@ -459,11 +459,14 @@ const SingleModuleOption = ({ elem, mod, mode, record, onValuesChange }) => {
                     targetModuleId={targetModuleId}
 
                     mode={mode}
+                    defaults={defaults}
                     record={record}
 
                     hasDescription={field.moduleDetails.hasDescription}
                     hasImage={field.moduleDetails.hasImage}
                     linkable={field.moduleDetails.linkable}
+
+                    maxItems={1}
                 />
             </Form.Item>
 
@@ -471,28 +474,67 @@ const SingleModuleOption = ({ elem, mod, mode, record, onValuesChange }) => {
     )
 }
 
+const MultiModuleOption = ({ elem, mod, mode, defaults, record, onValuesChange }) => {
+    const { _id, productId } = mod
+    const moduleId = _id;
+    
+    const field = mod.fields[elem.field];
+    const
+        targetProductId = field.productId,
+        targetModuleId = field.moduleId;
 
-const InlineCombination = ({ elem, mod, mode, record, onValuesChange }) => {
+    return (
+        <Fragment>
+            <Form.Item 
+                label={getLabel(elem, mod.fields)}
+                name={elem.field}
+                //rules={rules}
+            >
+                <ModuleListInput
+                    productId={productId}
+                    moduleId={moduleId}
+                    fieldId={elem.field}
+
+                    targetProductId={targetProductId}
+                    targetModuleId={targetModuleId}
+
+                    mode={mode}
+                    defaults={defaults}
+                    record={record}
+
+                    hasDescription={field.moduleDetails.hasDescription}
+                    hasImage={field.moduleDetails.hasImage}
+                    linkable={field.moduleDetails.linkable}
+
+                    maxItems={999}
+                />
+            </Form.Item>
+
+        </Fragment>
+    )
+}
+
+const InlineCombination = ({ elem, mod, mode, defaults, record, onValuesChange }) => {
     return (
         <Row className="ant-form-item" style={{ display: 'flex', flexFlow:'row wrap' }}>
             <Col span={6} className="ant-form-item-label">
                 <label>{getLabel(elem, mod.fields)}</label>
             </Col>
             <Col className="ant-form-item-control" style={{ display: 'flex', flexFlow:'row wrap' }}>
-                <LayoutElements elements={elem.elements} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
+                <LayoutElements elements={elem.elements} mod={mod} mode={mode} defauls={defaults} record={record} onValuesChange={onValuesChange} />
             </Col>
         </Row>
     )
 }
 
-const GenericInputWrapper = ({ elem, mod, mode, onValuesChange, record, children }) => {
+const GenericInputWrapper = ({ elem, mod, mode, onValuesChange, defaults, record, children }) => {
     const { fields } = mod;
     const { field, enabled, visible } = elem;
     let { rules, autoValue } = fields[field];
     const [disabled, setDisabled] = useState(mode === 'SHOW');
     const isEnabled = useMemo( () => (enabled ? eval(enabled) : () => true), [enabled] );
 
-    useWhenChanged(mode, () => {       
+    useWhenChanged(mode, oldMode => {
         if (mode == 'EDIT') {
             // initialer Aufruf, wenn man aus dem SHOW in den EDIT-mode geht
             const d = !isEnabled({ allValues: record, mode, moment });
@@ -501,7 +543,8 @@ const GenericInputWrapper = ({ elem, mod, mode, onValuesChange, record, children
             if (!disabled) setDisabled(true);
         } else {
             // NEW
-            
+            const d = !isEnabled({ allValues: defaults, mode, moment });
+            if (d != disabled) setDisabled(d);
         }
     });
 
@@ -606,7 +649,7 @@ const HtmlInput = props => {
     
     return (
         <GenericInputWrapper {...props} >
-            <Summernote options={options} />  
+            <Summernote options={options} />
         </GenericInputWrapper>
     )
 }
@@ -625,29 +668,29 @@ const OptionInput = props => {
     )
 }
 
-const DividerControl = ({ elem, mod, mode, record, onValuesChange }) => {
+const DividerControl = ({ elem, mod, mode, defaults, record, onValuesChange }) => {
     return (
         <Divider orientation={elem.orientation || 'left'} >{elem.title}</Divider>
     );
 }
 
-const Collapsible = ({ elem, mod, mode, record, onValuesChange }) => {
+const Collapsible = ({ elem, mod, mode, defaults, record, onValuesChange }) => {
     return (
         <Collapse defaultActiveKey={elem.collapsedByDefault ? ['1'] : null}
             style={{marginBottom:16}}
         >
             <Panel header={getLabel(elem, mod.fields)} key="1">
-                <LayoutElements elements={elem.elements} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
+                <LayoutElements elements={elem.elements} mod={mod} mode={mode} defaults={defaults} record={record} onValuesChange={onValuesChange} />
             </Panel>
         </Collapse>
     );
 }
 
-export const ModLayout = ({ product, mod, record, layoutName = 'default', mode, onValuesChange }) => {
+export const ModLayout = ({ product, mod, defaults, record, layoutName = 'default', mode, onValuesChange }) => {
     // aktuell wird nur das default-layout unterstützt
     const layout = mod.layouts && (mod.layouts[layoutName] || mod.layouts.default);
     
     return (
-        <LayoutElements elements={layout.elements} mod={mod} mode={mode} record={record} onValuesChange={onValuesChange} />
+        <LayoutElements elements={layout.elements} mod={mod} mode={mode} defaults={defaults} record={record} onValuesChange={onValuesChange} />
     )
 }

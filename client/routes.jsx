@@ -151,6 +151,7 @@ FlowRouter.route('/records/:productId/:moduleId/new', {
     action(params, queryParams) {
         mount(App, {
             content: Record,
+            key: 'NEW',
             authenticatedRoute: true,
             params,
             queryParams,
@@ -165,6 +166,7 @@ FlowRouter.route('/records/:productId/:moduleId/:recordId', {
     action(params, queryParams) {
         mount(App, {
             content: Record,
+            key: params.recordId,
             authenticatedRoute: true,
             params,
             queryParams,

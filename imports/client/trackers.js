@@ -314,7 +314,7 @@ export const useAvatar = userId => useTracker( () => {
  * 
  * @param {String} userId   Specifies the user
  */
- export const useRecord = (productId, moduleId, recordId, reloadRevision) => useTracker( () => {
+ export const useRecord = (productId, moduleId, recordId) => useTracker( () => {
     if (!recordId) return [null, false];
 
     const noDataAvailable = [ null /*record*/ , true /*loading*/];
@@ -346,7 +346,7 @@ export const useAvatar = userId => useTracker( () => {
     });
 
     return [ doc, false ];
-}, [productId, moduleId, recordId, reloadRevision]);
+}, [productId, moduleId, recordId]);
 
 
 /** 

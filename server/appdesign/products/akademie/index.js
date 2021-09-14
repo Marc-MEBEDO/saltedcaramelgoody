@@ -1,5 +1,5 @@
 import { Seminare } from './modules/seminare';
-//import { Seminarteilnehmer } from './modules/seminarteilnehmer';
+import { Seminarteilnehmer } from './modules/seminarteilnehmer';
 
 export const Akademie = {
     _id: "akademie",
@@ -9,6 +9,6 @@ export const Akademie = {
 
     modules: [
         Seminare,
-        //Seminarteilnehmer
+        Seminarteilnehmer
     ]
 };

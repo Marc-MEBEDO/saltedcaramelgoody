@@ -42,7 +42,7 @@ export const App = ({content, ...props}) => {
 
     return (
         <DefaultLayout currentUser={currentUser} { ...props } >
-            { React.createElement(content || null, { ...props }) }
+            { React.createElement(content || null, { currentUser, ...props }) }
         </DefaultLayout>
     );
 }   

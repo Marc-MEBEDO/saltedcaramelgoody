@@ -56,14 +56,11 @@ export const registerReport = r => {
     }
 
     if (report.datasource) {
-        
         const methodName = 'reports.' + reportId;
         console.log('Register method for static report', methodName);
         const fnDatasource = report.datasource;
-        
-        Meteor.methods({ [methodName]: function(param) {
-            console.log('Enter datasource', methodName, param)
 
+        Meteor.methods({ [methodName]: function(param) {
             param = param || {};
             param.isServer = true
             param.datasource = this;

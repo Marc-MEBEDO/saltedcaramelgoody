@@ -270,8 +270,8 @@ export const Adressen = {
                     ]}
                 ]},
 
-                { title: 'Ansprechpartner1', controlType: ctReport, reportId: StaticReportKontakteByAdresse._id },
-                //{ title: 'Ansprechpartner2', controlType: ctReport, reportId: ReportKontakteByAdresse._id },
+                //{ title: 'Ansprechpartner1', controlType: ctReport, reportId: StaticReportKontakteByAdresse._id },
+                { title: 'Ansprechpartner2', controlType: ctReport, reportId: ReportKontakteByAdresse._id },
 
                 { title: 'Kommunikation', controlType: ctCollapsible, collapsedByDefault: false, elements: [
                     {  field: 'telefon',  controlType: ctStringInput },
