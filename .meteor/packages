@@ -11,16 +11,16 @@ reactive-var@1.0.11            # Reactive variable for tracker
 
 standard-minifier-css@1.7.3   # CSS minifier run for production mode
 es5-shim@4.8.0                # ECMAScript 5 compatibility for older browsers
-ecmascript@0.15.2              # Enable ECMAScript2015+ syntax in app code
-typescript@4.3.2              # Enable TypeScript syntax in .ts and .tsx modules
+ecmascript@0.15.3              # Enable ECMAScript2015+ syntax in app code
+typescript@4.3.5              # Enable TypeScript syntax in .ts and .tsx modules
 shell-server@0.5.0            # Server-side component of the `meteor shell` command
 
 static-html             # Define static page content in .html files
 react-meteor-data       # React higher-order component for reactively tracking Meteor data
 less
-accounts-password@2.0.0
+accounts-password@2.0.1
 kadira:flow-router
 aldeed:collection2
 jquery
 ostrio:files
-abernix:standard-minifier-js
+standard-minifier-js
