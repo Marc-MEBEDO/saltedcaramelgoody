@@ -8,6 +8,8 @@ import { moduleStores } from '../../imports/coreapi';
 
 import { Mongo } from 'meteor/mongo';
 import { LayoutElementsSchema, LayoutSchema } from '../../imports/coreapi/collections/layout';
+import { isFunction } from '../../imports/coreapi/helpers/basics';
+
 
 /**
  * 
@@ -55,6 +57,20 @@ export const registerReport = r => {
         });
     }
 
+    if (r.actions) {
+        r.actions = r.actions.map( ac => {
+            if (ac.disabled && isFunction(ac.disabled)) ac.disabled = ac.disabled.toString();
+            if (ac.visible && isFunction(ac.visible)) ac.visible = ac.visible.toString();
+
+            if (ac.visible && isFunction(ac.visible)) ac.visible = ac.visible.toString();
+            if (ac.onExecute && isFunction(ac.onExecute.runScript)) {
+                ac.onExecute.runScript = ac.onExecute.runScript.toString();
+            }
+
+            return ac;
+        })
+    }
+
     if (report.datasource) {
         const methodName = 'reports.' + reportId;
         console.log('Register method for static report', methodName);
@@ -80,8 +96,6 @@ export const registerReport = r => {
         console.log('Register subscription for realtime-report', subscriptionName);
         const fnLiveData = report.liveData;
         Meteor.publish(subscriptionName, function(param) {
-            console.log('Enter Publication', subscriptionName, param)
-
             param = param || {};
             param.isServer = true
             param.publication = this;

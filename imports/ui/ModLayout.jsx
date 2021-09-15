@@ -10,10 +10,12 @@ import Select from 'antd/lib/select';
 import Spin from 'antd/lib/spin';
 import List from 'antd/lib/list';
 import Skeleton from 'antd/lib/skeleton';
-import Avatar from 'antd/lib/avatar';
 import Table from 'antd/lib/table';
 import Image from 'antd/lib/image';
 import Button from 'antd/lib/button';
+import Menu from 'antd/lib/menu';
+import Dropdown from 'antd/lib/dropdown';
+import Tag from 'antd/lib/tag';
 
 import Space from 'antd/lib/space';
 import message from 'antd/lib/message';
@@ -22,13 +24,14 @@ import Row from 'antd/lib/row';
 import Col from 'antd/lib/col';
 
 import DeleteOutlined from '@ant-design/icons/DeleteOutlined';
+import MoreOutlined from '@ant-design/icons/MoreOutlined';
+
 import { Summernote } from '../ui/components/Summernote';
 
 import { withTracker } from 'meteor/react-meteor-data';
 
 import moment from 'moment';
 import localization from 'moment/locale/de';
-
 
 const { Panel } = Collapse;
 const { Option } = Select;
@@ -45,7 +48,7 @@ import {
     ctDatespanInput
 } from '../../imports/coreapi/controltypes';
 
-import { debounce, deepClone } from '../coreapi/helpers/basics';
+import { debounce, deepClone, isArray } from '../coreapi/helpers/basics';
 
 import { getModuleStore } from '../coreapi'; // wird für eval() funktionen benötigt
 import { check } from 'meteor/check'; // wird für eval() funktionen benötigt
@@ -199,13 +202,132 @@ export class ReportStatic extends React.Component {
         if (loading) return <Skeleton />;
 
         if (type == 'table') {
-            //const pagination = { defaultPageSize:2, position: ['none', 'none' /*'bottomRight'*/] }
-            const pagination = { position: ['none', 'none'] }
-            return <Table rowKey="_id" dataSource={data} columns={columns} title={() => title } pagination={pagination} bordered />
+            const pagination = null; //{ position: ['none', 'none'] }
+            return <Table rowKey="_id" dataSource={data} columns={columns} title={() => title } pagination={pagination}  />
         }
 
         return <div>Unbekannter Reporttype</div>
     }
+}
+
+const ReportAction = ({ report, action, reportParams, isRowAction = false, rowdoc}) => {
+    const { defaults, record, mode } = reportParams;
+    
+    const executeAction = onExecute => {
+        let { redirect, exportToCSV } = onExecute;
+
+        if (redirect) {
+            const data = mode == 'NEW' ? defaults : record;
+
+            Object.keys(data).forEach( key => {
+                redirect = redirect.replace(new RegExp(`{{parentRecord.${key}}}`, 'g'), encodeURIComponent(data[key]));
+            });
+
+            if (rowdoc) {
+                Object.keys(rowdoc || {}).forEach( key => {
+                    redirect = redirect.replace(new RegExp(`{{rowdoc.${key}}}`, 'g'), encodeURIComponent(rowdoc[key]));
+                });
+            }
+
+            return FlowRouter.go(redirect);
+        }
+
+        if (exportToCSV) {
+            const { columns, data, additionalData } = report;
+
+            let csvContent = "data:text/csv;charset=utf-8," 
+                    + columns.filter( ({key}) => key && key.substring(0,2) != '__' ).map( ({ title }) => title).join('\t') + '\n'
+                    + data.map(doc => {
+                        return columns.filter( ({key}) => key && key.substring(0,2) != '__' ).map( c => {
+                            if (c.render) {
+                                return c.render(doc[c.dataIndex], doc, { renderExport: true });
+                            }
+                            return doc[c.dataIndex];
+                        }).join('\t')
+                    }).join("\n");
+
+            var encodedUri = encodeURI(csvContent);
+            var link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", exportToCSV.filename);
+            //document.body.appendChild(link); // Required for FF
+
+            link.click();
+        }
+    }
+
+    if (isArray(action)) {
+        const MenuItems = action.map( a => {
+            const { type, title, icon, onExecute, disabled, visible } = a;
+            const { data } = report;
+
+            const checkDisabled = disabled ? eval(disabled) : () => false;
+            const checkVisible = visible ? eval(visible) : () => true;
+
+            if (!checkVisible({mode, data, defaults, record/*, TODO currentUser*/})) return null;
+
+            return (
+                <Menu.Item 
+                    key={a.title} 
+                    onClick={() => executeAction(onExecute)}
+                    disabled={checkDisabled({mode, data: data || [], defaults, record/*, TODO currentUser*/})} 
+                >
+                    { icon && <i className={icon} style={{marginRight:8}} /> }
+                    {title}
+                </Menu.Item>
+            )
+        }).filter(item => item !== null)
+
+        if (MenuItems.length == 0) return null;
+
+        const menu = (
+            <Menu>
+                { MenuItems }
+            </Menu>
+        );
+
+        return <Dropdown.Button type={isRowAction ? 'link':null} overlay={menu} />
+    } else {
+        const { type, title, icon, iconOnly, onExecute, disabled, visible } = action;
+        const { data } = report;
+
+        const checkDisabled = disabled ? eval(disabled) : () => false;
+        const checkVisible = visible ? eval(visible) : () => true;
+
+        if (!checkVisible({mode, data: data || [], defaults, record/*, TODO currentUser*/})) return null;
+
+        return (
+            <Button 
+                key={title} 
+                type={isRowAction ? 'link' : (type == 'primary' ? 'primary' : 'secondary') }
+                onClick={() => executeAction(onExecute)}
+                disabled={checkDisabled({mode, data, defaults, record/*, TODO currentUser*/})} 
+            >                
+                { icon && <i className={icon} style={{marginRight:8}} /> }
+                { !iconOnly && title}
+            </Button>
+        );
+    }
+}
+
+const ReportGeneralActions = ({report, reportParams}) => {
+    const { actions } = report;
+    
+    const generalActions = actions.filter( ({ inGeneral }) => !!inGeneral);
+
+    const primaryAction = generalActions.find( ({type}) => type == 'primary');
+    const secondaryAction = generalActions.find( ({type}) => type == 'secondary');
+    const moreActions = generalActions.filter( action => action !== primaryAction && action !== secondaryAction);
+
+    return (
+        <div className="report-general-actions">
+            <Space>
+                { primaryAction && <ReportAction report={report} action={primaryAction} reportParams={reportParams} /> }
+                { secondaryAction && <ReportAction report={report} action={secondaryAction} reportParams={reportParams} /> }
+                { moreActions.length > 0 && <ReportAction report={report} action={moreActions} reportParams={reportParams} /> }
+            </Space>
+        </div>
+    )
 }
 
 export class ReportControl extends React.Component {
@@ -232,9 +354,9 @@ export class ReportControl extends React.Component {
                 report.columns = report.columns.map( c => {
                     const fnCode = c.render;
                     if (fnCode) {
-                        c.render = function renderColumn(col, doc) {
-                            let renderer = eval(fnCode);
-                            return renderer(col, doc, report.additionalData || {});
+                        let renderer = eval(fnCode);
+                        c.render = function renderColumn(col, doc, { renderExport = false }) {
+                            return renderer(col, doc, { additionalData: report.additionalData, renderExport });
                         }
                     };
                     
@@ -264,21 +386,61 @@ export class ReportControl extends React.Component {
             mode: this.props.mode, 
             isServer: false,
         }
-        if (isStatic) return <ReportStatic report={report} reportParams={reportParams} />
 
-        return <ReportLiveData report={report} reportParams={reportParams} />
+        const ReportExecution = isStatic ? ReportStatic:ReportLiveData;
+        return (
+            <div className="report-container">
+                { report.actions ? <ReportGeneralActions report={report} reportParams={reportParams} /> : null }
+                <ReportExecution report={report} reportParams={reportParams} />
+            </div>
+        )
     }
 }
 
 class ReportLiveDataControl extends React.Component {
+    constructor(props) {
+        super(props);
+
+        const { report, reportParams } = props;
+
+        if (report.actions) {
+            let acs = report.actions.filter( ({ inGeneral }) => !inGeneral )
+            const primaryAction = acs.find( ({type}) => type == 'primary' );
+            const secondaryAction = acs.find( ({type}) => type == 'secondary' );
+            const moreActions = acs.filter( ({type}) => type != 'primary' && type != 'secondary' );
+
+            if ( primaryAction || secondaryAction || (moreActions && moreActions.length)) {
+                this.actionColumn = {
+                    title: ' ',
+                    key: '__action',
+                    align: 'right',
+                    render: (text, doc) => (
+                        <Space>
+                            { primaryAction && <ReportAction isRowAction rowdoc={doc} report={report} action={primaryAction} reportParams={reportParams} /> }
+                            { secondaryAction && <ReportAction isRowAction rowdoc={doc} report={report} action={secondaryAction} reportParams={reportParams} /> }
+                            { moreActions.length > 0 && <ReportAction isRowAction rowdoc={doc} report={report} action={moreActions} reportParams={reportParams} /> }
+                        </Space>
+                    ),
+                }
+            }
+
+        }
+    }
+
     render() {
         const { data, loading, report } = this.props;
         const { type, columns, title } = report;
 
+        report.data = data;
+
         if (loading) return <Skeleton />;
 
         if (type == 'table') {
-            return <Table rowKey="_id" dataSource={data} columns={columns} title={() => title + '(R)' } bordered />
+            let cols = columns;
+            if (this.actionColumn) {
+                cols.push(this.actionColumn);
+            }
+            return <Table rowKey="_id" dataSource={data} pagination={false} columns={cols} title={() => <Space>{title}<Tag color={"green"}>livedata</Tag></Space> } />
         }
 
         return <div>Unbekannter Reporttype</div>
@@ -289,8 +451,9 @@ export const ReportLiveData = withTracker( ({ report, mode, reportParams }) => {
     const { _id, liveData } = report;
 
     fnLiveData = eval(liveData);
-    
-    const subscription = Meteor.subscribe('reports.' + _id, reportParams);
+
+    const subscriptionData = deepClone(reportParams, { transformDate: true, deleteCurrentUser: true });
+    const subscription = Meteor.subscribe('reports.' + _id, subscriptionData);
    
     return {
         loading: !subscription.ready(),
@@ -430,11 +593,6 @@ class ModuleListInput extends React.Component {
 }
 
 const SingleModuleOption = ({ elem, mod, mode, defaults, record, onValuesChange }) => {
-    /*const [ fetching, setFetching ] = useState(false);
-    const [ options, setOptions ] = useState([]);
-    const [ selectedValues, setSelectedValues ] = useState([]);
-    const [ enteredValue, setEnteredValue ] = useState('');*/
-
     const { _id, productId } = mod
     const moduleId = _id;
     

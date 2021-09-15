@@ -16,7 +16,7 @@ import {
 
 import { FieldNamesAndMessages } from '../../../../../coreapi';
 import { getModuleStore } from '../../../../../../imports/coreapi';
-import { Teilnehmestati } from './teilnehmerstati';
+import { Teilnehmerstati } from './teilnehmerstati';
 
 export const Seminarteilnehmer = {
     _id: "seminarteilnehmer",
@@ -108,7 +108,7 @@ export const Seminarteilnehmer = {
                 { field: 'title', controlType: ctStringInput },
                 { field: 'seminar', controlType: ctSingleModuleOption },
                 { field: 'teilnehmer', controlType: ctSingleModuleOption },                
-                { field: 'status', controlType: ctOptionInput, values: Teilnehmestati, direction: 'horizontal', defaultValue: 'bestätigt' },
+                { field: 'status', controlType: ctOptionInput, values: Teilnehmerstati, direction: 'horizontal', defaultValue: 'bestätigt' },
             ]
         },
     },
@@ -128,18 +128,27 @@ export const Seminarteilnehmer = {
     },
 
     methods: {
-        /*defaults: ({ queryParams, record, isServer, moment }) => {
-            // default für Status = "angelegt"
-            return {
-                title:'test',
-                datumVonBis: [new Date(), new Date()],
-                seminar: 'Seminartitel....',
-                beschreibung: '<h1>Ziel</h1><p>Bitte geben Sie hier das Ziel des Seminars ein.</p><h1>Inhalt</h1><p>und hier noch ein bisschen Inhalt bitte...</p>',
-                status: ''
+        defaults: ({ queryParams, moment }) => {
+            let defaults = {
+                status: 'angemeldet'
             }
-        },*/
-        onBeforeInsert: ({ firma2 }) => {
+    
+            if (queryParams && queryParams.seminarId) {
+                const Seminare = getModuleStore('seminare');
 
+                const seminar = Seminare.findOne({ _id: queryParams.seminarId });
+                if (seminar) {
+                    defaults.seminar = [{
+                        _id: seminar._id,
+                        title: seminar.title,
+                        description: seminar.description
+                    }]
+                }
+            }
+            
+            return defaults;
+        },
+        onBeforeInsert: ({ firma2 }) => {
             return { status: 'okay' };
         },
 

@@ -28,7 +28,7 @@ import moment from 'moment';
 import localization from 'moment/locale/de';
 import { useOnceWhen } from '../coreapi/helpers/react-hooks';
 
-export const Record = ({ params, currentUser, mode }) => {
+export const Record = ({ params, queryParams, currentUser, mode }) => {
     const { productId, moduleId, recordId } = params;
     const [ product, productLoading ] = useProduct(productId);
     const [ mod, modLoading ] = useModule(moduleId);
@@ -44,7 +44,7 @@ export const Record = ({ params, currentUser, mode }) => {
 
     useOnceWhen(() => !productLoading && !modLoading && !recordLoading, () => {
         if (mode === 'NEW') {
-            Meteor.call('modules.getDefaults', {productId, moduleId}, (err, defaults) => { 
+            Meteor.call('modules.getDefaults', {productId, moduleId, queryParams}, (err, defaults) => { 
                 if (err) {
                     return message.error('Es ist ein unbekannter Systemfehler beim ermitteln der Standardwerte aufgetreten. Bitte wenden Sie sich an den Systemadministrator.' + err.message);
                 } else {
@@ -71,14 +71,13 @@ export const Record = ({ params, currentUser, mode }) => {
             if (record) {
                 // Timeout ist erforderlich, da der setFieldsValue vor dem eigentlichen rendern des Forms
                 // stattfindet
-                setTimeout(() => recordForm.setFieldsValue(record), 100);
+                setTimeout(() => {
+                    recordForm.setFieldsValue(record)
+                }, 100);
             }
         }
     }, [productId, moduleId, recordId, mode]);
 
-    //if (mode == 'SHOW' && recordMode == 'NEW' && recordId) setRecordMode('SHOW');
-    //if (mode == 'NEW' && recordMode != 'NEW') setRecordMode('NEW');
-    
     if (productLoading || modLoading || recordLoading)
         return null;
     

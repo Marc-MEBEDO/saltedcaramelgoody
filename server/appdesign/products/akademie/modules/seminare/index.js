@@ -17,6 +17,8 @@ import { FieldNamesAndMessages } from '../../../../../coreapi';
 import { getModuleStore } from '../../../../../../imports/coreapi';
 import { Seminarstati } from './seminarstati';
 
+import { ReportSeminarteilnehmerBySeminar } from '../seminarteilnehmer/reports/SeminarteilnehmerBySeminar';
+
 export const Seminare = {
     _id: "seminare",
 
@@ -103,6 +105,7 @@ export const Seminare = {
                 { field: 'status', controlType: ctOptionInput, values: Seminarstati, direction: 'horizontal', defaultValue: 'kunde' },
                 { field: 'seminar', controlType: ctStringInput },
                 { field: 'beschreibung', controlType: ctHtmlInput },
+                { title: 'Semteil', controlType: ctReport, reportId: ReportSeminarteilnehmerBySeminar._id },
             ]
         },
     },
@@ -176,6 +179,6 @@ export const Seminare = {
     },
 
     reports: [
-        
+        ReportSeminarteilnehmerBySeminar
     ]
 }

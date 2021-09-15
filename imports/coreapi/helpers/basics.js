@@ -50,6 +50,17 @@ export const isPlainObject = obj => {
 }
 
 /**
+ * Tests if given Value is a function or not
+ * 
+ * @param {Any} val Value to test
+ * @returns {Boolean} True if given Value is a Function otherwise false
+ */
+ export const isFunction = val => {
+    if (val === null || val === undefined) { return false;}
+    return typeof val === 'function';
+}
+
+/**
  * Tests if given Value is a Boolean or not
  * 
  * @param {Any} val Value to test

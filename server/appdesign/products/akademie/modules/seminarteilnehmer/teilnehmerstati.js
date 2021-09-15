@@ -1,6 +1,6 @@
 import { Colors } from '../../../../../../imports/coreapi/colors';
 
-export const Teilnehmestati = [
+export const Teilnehmerstati = [
     { _id: 'angemeldet', title:'angemeldet', ...Colors.blue }, 
     { _id: 'bestätigt', title:'bestätigt',  ...Colors.orange },
     { _id: 'abgesagt', title:'abgesagt',  ...Colors.red },
