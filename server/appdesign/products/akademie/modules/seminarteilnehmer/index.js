@@ -11,7 +11,8 @@ import {
     ctHtmlInput,
     ctDatespanInput,
     ctDateInput,
-    ctSingleModuleOption
+    ctSingleModuleOption,
+    ctDivider
  } from '../../../../../../imports/coreapi/controltypes';
 
 import { FieldNamesAndMessages } from '../../../../../coreapi';
@@ -32,29 +33,62 @@ export const Seminarteilnehmer = {
         // wenn vorhanden, dann wird die Message genutzt - ansonsten wird
         // die Msg generisch mit singular oder plural generiert
         messages: {
-
+            activityRecordInserted: 'hat den Teilnehmer angelegt.'
         }
     },
 
     fields: {
-        title: { 
+        title: {
             type: 'String', 
             rules: [
                 { required: true, message: 'Bitte geben Sie den Titel ein.' },    
             ],
+            autoValue: ({ allValues }) => {
+                const { teilnehmer } = allValues;
+                
+                if (teilnehmer && teilnehmer.length) return teilnehmer[0].title;
+                
+                return '';
+            },
             ...FieldNamesAndMessages('der', 'Titel', 'die', 'Titel', { onUpdate: 'den Titel' }),
             ...defaultSecurityLevel
         },
+
+        description: {
+            type: 'String', 
+            rules: [
+                { required: true, message: 'Bitte geben Sie eine Beschreibung zum Teilnehmer an.' },    
+            ],
+            autoValue: ({ allValues }) => {
+                const { seminar, teilnehmer } = allValues;
+
+                if (seminar && seminar.length)
+                    return seminar[0].title;
+                return '';
+            },
+            ...FieldNamesAndMessages('die', 'Beschreibung', 'die', 'Beschreibungen'),
+            ...defaultSecurityLevel
+        },
+
 
         seminar: {
             type: 'Module',
             moduleDetails: {
                 productId: 'akademie', 
                 moduleId: 'seminare',
-                hasDescription: false,
-                //description: doc => {
-                //    return doc.firma1 + ' • ' + doc.strasse + ' • ' + doc.plz + ' ' + doc.ort;
-                //},
+                hasDescription: true,
+                description: doc => {
+                    let datumVon, datumBis, datumsausgabe;
+
+                    if (doc.datumVonBis && doc.datumVonBis[0]) datumVon = moment(doc.datumVonBis[0]).format('DD.MM.YYYY');
+                    if (doc.datumVonBis && doc.datumVonBis[1]) datumBis = moment(doc.datumVonBis[1]).format('DD.MM.YYYY');
+
+                    if (datumVon && !datumBis) datumsausgabe = datumVon;
+                    if (datumVon && datumBis && datumVon == datumBis) datumsausgabe = datumVon;
+                    if (datumVon && datumBis && datumVon != datumBis) datumsausgabe = datumVon + ' bis ' + datumBis;
+
+                    return datumsausgabe + ' • '  + doc.status;
+                },
                 hasImage: false,
                 //imageUrl: doc => {
                 //    return doc.logoUri;
@@ -106,8 +140,10 @@ export const Seminarteilnehmer = {
             
             elements: [
                 { field: 'title', controlType: ctStringInput },
+                { field: 'description', controlType: ctStringInput },
+                { title: 'Details der Teilnahme', controlType: ctDivider },
                 { field: 'seminar', controlType: ctSingleModuleOption },
-                { field: 'teilnehmer', controlType: ctSingleModuleOption },                
+                { field: 'teilnehmer', controlType: ctSingleModuleOption, enabled: ({mode}) => mode == 'NEW' },
                 { field: 'status', controlType: ctOptionInput, values: Teilnehmerstati, direction: 'horizontal', defaultValue: 'bestätigt' },
             ]
         },
@@ -136,19 +172,29 @@ export const Seminarteilnehmer = {
             if (queryParams && queryParams.seminarId) {
                 const Seminare = getModuleStore('seminare');
 
-                const seminar = Seminare.findOne({ _id: queryParams.seminarId });
+                const seminar = Seminare.findOne({ _id: queryParams.seminarId }, { fields: {_id:1, title:1, description:1}});
                 if (seminar) {
-                    defaults.seminar = [{
+                    defaults.seminar = [seminar];
+                    /*defaults.seminar = [{
                         _id: seminar._id,
                         title: seminar.title,
                         description: seminar.description
-                    }]
+                    }]*/
                 }
             }
-            
+        
             return defaults;
         },
-        onBeforeInsert: ({ firma2 }) => {
+        onBeforeInsert: ({ teilnehmer, seminar }) => {
+            // check ob Teilnehmer bereits zu diesem Seminar angemeldet ist
+            const Seminarteilnehmer = getModuleStore('seminarteilnehmer');
+            
+            const teilnahme = Seminarteilnehmer.findOne({'teilnehmer._id': teilnehmer[0]._id, 'seminar._id': seminar[0]._id});
+
+            if (teilnahme) {
+                return { status: 'abort', messageText: 'Der ausgewählte Teilnehmer ist bereits angemeldet.' };
+            }
+
             return { status: 'okay' };
         },
 
@@ -156,7 +202,7 @@ export const Seminarteilnehmer = {
 
         },
 
-        onAfterUpdate: (values, { _id }) => {
+        onBeforeUpdate: (values, { _id }) => {
 
             return { status: 'okay' };
         }

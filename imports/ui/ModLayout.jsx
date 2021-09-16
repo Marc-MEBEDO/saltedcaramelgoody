@@ -24,6 +24,7 @@ import Row from 'antd/lib/row';
 import Col from 'antd/lib/col';
 
 import DeleteOutlined from '@ant-design/icons/DeleteOutlined';
+import CloseOutlined from '@ant-design/icons/CloseOutlined';
 import MoreOutlined from '@ant-design/icons/MoreOutlined';
 
 import { Summernote } from '../ui/components/Summernote';
@@ -530,22 +531,23 @@ class ModuleListInput extends React.Component {
 
     render() {
         const { currentInput, value, options, fetching } = this.state;
-        const { hasDescription, hasImage, linkable, mode, maxItems = 999 } = this.props;
+        const { hasDescription, hasImage, linkable, mode, disabled, maxItems = 999 } = this.props;
 
         const onSearch = this.onSearch.bind(this);
         const onChange = this.onSelectChange.bind(this);
         const removeSeletedItem = this.removeSeletedItem.bind(this);
 
         const getActionButtons = item => {
-            if (mode === 'EDIT' || mode === 'NEW') 
+            if (!disabled && (mode === 'EDIT' || mode === 'NEW')) 
                 return [
-                    <Button type="link" onClick={ _ => removeSeletedItem(item) } icon={<DeleteOutlined />} ></Button>
+                    <Button type="link" onClick={ _ => removeSeletedItem(item) } icon={<CloseOutlined />} ></Button>
                 ]
             return null
         };
 
         return <Fragment>
             <List
+                className="module-list-input-selected-items"
                 itemLayout="horizontal"
                 dataSource={ value }
                 renderItem={ item => 
@@ -563,7 +565,7 @@ class ModuleListInput extends React.Component {
                 }
             />
 
-            { mode === 'SHOW' || value.length >= maxItems ? null :
+            { disabled || mode === 'SHOW' || value.length >= maxItems ? null :
                 <Select
                     ref={this.selectRef}
                     showSearch
@@ -593,20 +595,66 @@ class ModuleListInput extends React.Component {
 }
 
 const SingleModuleOption = ({ elem, mod, mode, defaults, record, onValuesChange }) => {
-    const { _id, productId } = mod
+    const { _id, productId, fields } = mod;
     const moduleId = _id;
     
-    const field = mod.fields[elem.field];
+    const fieldDefinition = fields[elem.field];
     const
-        targetProductId = field.productId,
-        targetModuleId = field.moduleId;
+        targetProductId = fieldDefinition.productId,
+        targetModuleId = fieldDefinition.moduleId;
+
+    const { field, enabled, visible } = elem;
+    let { rules, autoValue } = fields[field];
+    const [disabled, setDisabled] = useState(mode === 'SHOW');
+    const isEnabled = useMemo( () => (enabled ? eval(enabled) : () => true), [enabled] );
+
+    useWhenChanged(mode, oldMode => {
+        if (mode == 'EDIT') {
+            // initialer Aufruf, wenn man aus dem SHOW in den EDIT-mode geht
+            const d = !isEnabled({ allValues: record, mode, moment });
+            if (d != disabled) setDisabled(d);
+        } else if ( mode == 'SHOW' ) {
+            if (!disabled) setDisabled(true);
+        } else {
+            // NEW
+            const d = !isEnabled({ allValues: defaults, mode, moment });
+            if (d != disabled) setDisabled(d);
+        }
+    });
+
+    if (rules && rules.length) {
+        rules = rules.map(r => {
+            if (r.customValidator) {
+                return eval(r.customValidator);
+            }
+            return r;
+        });
+    }
+
+    if (autoValue) {
+        const recomputeValue = eval(autoValue);
+        onValuesChange( (changedValues, allValues, setValue) => {    
+            const newValue = recomputeValue({changedValues, allValues, moment});
+            if (allValues[field] !== newValue) {
+                setValue(field, newValue);
+            }
+        });
+    }
+
+    if (enabled && mode !== 'SHOW') {
+        // immer dann aufrufen, wenn sich Werte geändert haben
+        onValuesChange( (changedValues, allValues, setValue) => {            
+            const d = !isEnabled({changedValues, allValues, mode, moment});
+            if (d != disabled) setDisabled(d);
+        });
+    }
 
     return (
         <Fragment>
             <Form.Item 
                 label={getLabel(elem, mod.fields)}
                 name={elem.field}
-                //rules={rules}
+                rules={rules}
             >
                 <ModuleListInput
                     productId={productId}
@@ -620,11 +668,13 @@ const SingleModuleOption = ({ elem, mod, mode, defaults, record, onValuesChange 
                     defaults={defaults}
                     record={record}
 
-                    hasDescription={field.moduleDetails.hasDescription}
-                    hasImage={field.moduleDetails.hasImage}
-                    linkable={field.moduleDetails.linkable}
+                    hasDescription={fieldDefinition.moduleDetails.hasDescription}
+                    hasImage={fieldDefinition.moduleDetails.hasImage}
+                    linkable={fieldDefinition.moduleDetails.linkable}
 
                     maxItems={1}
+
+                    disabled={disabled}
                 />
             </Form.Item>
 
@@ -716,11 +766,12 @@ const GenericInputWrapper = ({ elem, mod, mode, onValuesChange, defaults, record
     }
     
     if (autoValue) {
-        recomputeValue = eval(autoValue);
-        onValuesChange( (changedValues, allValues, setValue) => {            
+        const recomputeValue = eval(autoValue);
+        onValuesChange( (changedValues, allValues, setValue) => {    
             const newValue = recomputeValue({changedValues, allValues, moment});
-            if (allValues[field] !== newValue)
+            if (allValues[field] !== newValue) {
                 setValue(field, newValue);
+            }
         });
     }
 

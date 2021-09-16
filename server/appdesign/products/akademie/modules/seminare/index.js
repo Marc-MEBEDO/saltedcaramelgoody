@@ -81,7 +81,17 @@ export const Seminare = {
             ],
             ...FieldNamesAndMessages('der', 'Zeitraum', 'die', 'Zeiträume', { onUpdate: 'den Zeitraum' } ),
             ...defaultSecurityLevel
+        },
+
+        maxTeilnehmer: {
+            type: 'Integer',
+            rules: [
+                { required: true, message: 'Bitte geben Sie maximale Anzahl an Teilnehmern an.' },
+            ],
+            ...FieldNamesAndMessages('die', 'maximale Teilnehmerzahl', 'die', 'maximale Teilnehmerzahl'),
+            ...defaultSecurityLevel
         }
+
     },
 
     layouts: {

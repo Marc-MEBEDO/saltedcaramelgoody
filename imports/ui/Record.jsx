@@ -10,6 +10,7 @@ import Breadcrumb from 'antd/lib/breadcrumb';
 import Affix from 'antd/lib/affix';
 import Form from 'antd/lib/form';
 import message from 'antd/lib/message';
+import Result from 'antd/lib/result';
 
 import ShareAltOutlined from '@ant-design/icons/ShareAltOutlined';
 import EditOutlined from '@ant-design/icons/EditOutlined';
@@ -30,8 +31,9 @@ import { useOnceWhen } from '../coreapi/helpers/react-hooks';
 
 export const Record = ({ params, queryParams, currentUser, mode }) => {
     const { productId, moduleId, recordId } = params;
-    const [ product, productLoading ] = useProduct(productId);
-    const [ mod, modLoading ] = useModule(moduleId);
+    const [ product, productLoading, productStatus ] = useProduct(productId);
+
+    const { moduleData, status: moduleStatus, message: moduleStatusMessage  } = useModule(moduleId);
 
     const [ reloadRevision, setReloadRevision ] = useState(0);
     const [ record, recordLoading ] = useRecord(productId, moduleId, recordId);
@@ -42,7 +44,7 @@ export const Record = ({ params, queryParams, currentUser, mode }) => {
 
     const [ recordForm ] = useForm();
 
-    useOnceWhen(() => !productLoading && !modLoading && !recordLoading, () => {
+    useOnceWhen(() => !productLoading && moduleStatus != 'loading' && !recordLoading, () => {
         if (mode === 'NEW') {
             Meteor.call('modules.getDefaults', {productId, moduleId, queryParams}, (err, defaults) => { 
                 if (err) {
@@ -50,8 +52,8 @@ export const Record = ({ params, queryParams, currentUser, mode }) => {
                 } else {
                     if (defaults) {
                         
-                        Object.keys(mod.fields).forEach(f => {
-                            const field = mod.fields[f];
+                        Object.keys(moduleData.fields).forEach(f => {
+                            const field = moduleData.fields[f];
                             const { type } = field;
 
                             if (type === 'Date' || type === 'Datespan') {
@@ -78,9 +80,21 @@ export const Record = ({ params, queryParams, currentUser, mode }) => {
         }
     }, [productId, moduleId, recordId, mode]);
 
-    if (productLoading || modLoading || recordLoading)
+    if (productLoading || moduleStatus == 'loading' || recordLoading)
         return null;
     
+    // prüfen, ob das angegebene Modul aus der URL
+    // gefunden wurde (richtig geschrieben) oder ob ggf. kein Zugriff besteht,
+    // da das Modul nicht mit dem benutzer geteilt wurde
+    if (moduleStatus != '200') {
+        return <Result
+            status={moduleStatus}
+            title={moduleStatus}
+            subTitle={moduleStatusMessage}
+            extra={<Button type="primary">Zurück</Button>}
+        />
+    }
+
     // aktuell wird nur das default-layout unterstützt
     //const layout = mod.layouts && mod.layouts.default;
     
@@ -88,14 +102,14 @@ export const Record = ({ params, queryParams, currentUser, mode }) => {
         recordForm.validateFields().then( values => {
             const data = {
                 productId: product._id,
-                moduleId: mod._id,
+                moduleId: moduleData._id,
                 values
             }
 
             // es müssen alle Date-Werte konvertiert werden, da diese als Funktionsausdruck von moment() vorliegen
             // uns nicht per Metor.call übertragen werden können
-            Object.keys(mod.fields).forEach(f => {
-                const field = mod.fields[f];
+            Object.keys(moduleData.fields).forEach(f => {
+                const field = moduleData.fields[f];
                 const { type } = field;
 
                 if (type === 'Date' || type === 'Datespan') {
@@ -200,7 +214,7 @@ export const Record = ({ params, queryParams, currentUser, mode }) => {
 
     const registerValuesChangeHook = fnHook => {
         if (!valuesChangeHooks.find(fn => fn === fnHook))
-        valuesChangeHooks.push(fnHook);
+            valuesChangeHooks.push(fnHook);
     }
 
     const onValuesChangeHook = (changedValues, allValues) => {
@@ -224,16 +238,16 @@ export const Record = ({ params, queryParams, currentUser, mode }) => {
                     <a href={"/dashboards/" + product._id}>{product.title}</a>
                 </Breadcrumb.Item>
                 <Breadcrumb.Item>
-                    {mod.title}
+                    {moduleData.title}
                 </Breadcrumb.Item>
             </Breadcrumb>
 
             <Affix className="mbac-affix-style-bottom" offsetTop={66}>
                 <PageHeader
-                    title={<span><i className={mod.faIconName} style={{fontSize:32, marginRight:16 }}/>{recordMode !== 'NEW' ? record && record.title : ''}</span>}
+                    title={<span><i className={moduleData.faIconName} style={{fontSize:32, marginRight:16 }}/>{recordMode !== 'NEW' ? record && record.title : ''}</span>}
                     subTitle={
                         <MediaQuery showAtTablet showAtDesktop >
-                            <span style={{marginTop:8, display:'flex'}}>{recordMode === 'NEW' ? 'Neuzugang' : null} {`(${mod.namesAndMessages.singular.ohneArtikel})`}</span>
+                            <span style={{marginTop:8, display:'flex'}}>{recordMode === 'NEW' ? 'Neuzugang' : null} {`(${moduleData.namesAndMessages.singular.ohneArtikel})`}</span>
                         </MediaQuery>
                     }
                     /*tags={
@@ -264,7 +278,7 @@ export const Record = ({ params, queryParams, currentUser, mode }) => {
 
                 <ModLayout
                     product={product}
-                    mod={mod}
+                    mod={moduleData}
 
                     defaults={defaults}
                     record={record}

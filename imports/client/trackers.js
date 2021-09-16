@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Tag from 'antd/lib/tag';
 
 
@@ -23,6 +23,7 @@ const notAuthorized = [ [] /*data*/, false /*loadin*/ ]
 const noDataAvailable = [ [] /*data*/ , true /*loading*/ ];
 
 import moment from 'moment';
+import { useOnce } from '../coreapi/helpers/react-hooks';
 
 /**
  * Reactive current User Account
@@ -291,8 +292,8 @@ export const useAvatar = userId => useTracker( () => {
  * 
  * @param {String} userId   Specifies the user
  */
- export const useModule = moduleId => useTracker( () => {
-    const noDataAvailable = [ null /*module*/ , true /*loading*/];
+ /*export const useModule = moduleId => useTracker( () => {
+    const noDataAvailable = [ null , true ];
 
     if (!Meteor.user()) {
         return noDataAvailable;
@@ -306,7 +307,46 @@ export const useAvatar = userId => useTracker( () => {
     const mod = Mods.findOne(moduleId);
 
     return [ mod, false ];
-}, [moduleId]);
+}, [moduleId]);*/
+
+/** 
+ * Lese das angegeben Modul
+ * 
+ * @param {String} modulId   Specifies the module to read
+ */
+ export const useModule = moduleId => {
+    const [ moduleData, setModuleData ] = useState({
+        moduleData: null, 
+        status: 'loading', 
+        message: null
+    });
+
+    if (!Meteor.user()) {
+        const modulState = {
+            moduleData: null,
+            status: '403',
+            message: 'Sie sind nicht angemeldet und haben keinen Zugriff auf das angegebene Modul.'
+        }
+        setModuleData(modulState);
+    }
+    
+    useEffect(() => {
+        Meteor.call('modules.getMetadata', moduleId, (err, result) => {
+            if (err) {
+                const modulState = {
+                    moduleData: null,
+                    status: '500',
+                    message: 'Ein unerwarteter Fehler ist aufgetreten.\n' + err.number + ' ' + err.message
+                }
+                setModuleData(modulState)
+            } else {
+                setModuleData(result)
+            }
+        });
+    }, [moduleId]);
+
+    return moduleData;
+}
 
 
 /** 
@@ -333,8 +373,13 @@ export const useAvatar = userId => useTracker( () => {
 
     const doc = moduleStore.findOne(recordId);
 
+    // prüfen ob ein document gefunden wurde
+    // ggf. ist das Produkt oder Modul nicht mit dem angemeldeten Benutzer
+    // geteilt und somit besteht auch kein Zugriff auf den eigentlichen Datensatz
+    if (!doc) return [null, false];
+
     // transform Date to moment
-    Object.keys(doc).forEach(propName => {
+    doc && Object.keys(doc).forEach(propName => {
         const v = doc[propName];
         if (v && v instanceof Date) {
             doc[propName] = moment(v);

@@ -162,16 +162,16 @@ export const Dashboard = ({ params }) => {
     const { productId, moduleId } = params;
 
     const [ product, productLoading ] = useProduct(productId);
-    const [ mod, modLoading ] = useModule(moduleId);
+    const { moduleData, status: moduleStatus, message: moduleStatusMessage  } = useModule(moduleId);
     
-    if (productLoading || modLoading)
+    if (productLoading || moduleStatus == 'loading')
         return null;
 
     let dashboardPicker = () => { return 'no-dashboard' }
-    if (mod.dashboards && mod.dashboards.dashboardPicker) dashboardPicker = eval(mod.dashboards.dashboardPicker);
+    if (moduleData.dashboards && moduleData.dashboards.dashboardPicker) dashboardPicker = eval(moduleData.dashboards.dashboardPicker);
     
     const dashboardName = dashboardPicker();
-    const dashboard = (mod.dashboards || {})[dashboardName];
+    const dashboard = (moduleData.dashboards || {})[dashboardName];
     
     const renderChart = ( element ) => {
         if ( element.typedetail == 'Bar' )
@@ -261,16 +261,16 @@ export const Dashboard = ({ params }) => {
                     <a href={"/dashboards/" + product._id}>{product.title}</a>
                 </Breadcrumb.Item>
                 <Breadcrumb.Item>
-                    {mod.title}
+                    {moduleData.title}
                 </Breadcrumb.Item>
             </Breadcrumb>
 
             <Affix className="mbac-affix-style-bottom" offsetTop={64}>
                 <PageHeader
-                    title={<span><i className={mod.faIconName} style={{fontSize:32, marginRight:16 }}/>{mod.title}</span>}
-                    subTitle={<span style={{marginTop:8, display:'flex'}}>{mod.description}</span>}
+                    title={<span><i className={moduleData.faIconName} style={{fontSize:32, marginRight:16 }}/>{moduleData.title}</span>}
+                    subTitle={<span style={{marginTop:8, display:'flex'}}>{moduleData.description}</span>}
                     //tags={<Tag color="blue">Running</Tag>}
-                    extra={ getExtras(mod.actions || {} ) }
+                    extra={ getExtras(moduleData.actions || {} ) }
                 />
             </Affix>
 
@@ -286,117 +286,3 @@ export const Dashboard = ({ params }) => {
         </Fragment>
     );
 }
-
-
-
-    /*
-
-    const sharedReportKunden = {
-        label: 'Kunden',
-        columns: [ 
-            'title', 
-            { firma: document => { return '' } }, 
-            { strasse: 'Straße' },
-            { plz: { label: 'Postleitzahl', value: document => 'D-' + document.plz }}
-        ],
-    }
-
-    const dashboard = {
-        rows: [
-            {
-                elements: [
-                    { 
-                        _id: "1", label: 'Kunden', type: 'widget', icon: 'far fa-building', color: '#6F4', width: { xs:24, sm:24, md:12, lg:8, xl:8 },
-                        datasource: 'adressen.AnzahlKunden', static: true, 
-                        onClick: { redirect: '/reports/crm/adressen/adressen.hotels' } 
-                    },
-                    { _id: "2", label: 'Hotels', type: 'widget', icon: 'far fa-user', color: 'orange', static: true, datasource: 'adressen.AnzahlHotels', width: { xs:24, sm:24, md:12, lg:8, xl:8 } },
-                    { _id: "3", label: 'Interessenten', type: 'widget', icon: 'far fa-clock', color: 'blue', static: true, datasource: 'adressen.AnzahlInteressenten', width: { xs:24, sm:24, md:12, lg:8, xl:8 } },
-                ]
-            },
-            {
-                elements: [
-                    {   _id: 'ReportKundenStatic', 
-                        type: 'static-report', ...sharedReportKunden,
-                        width: { xs:24, sm:24, md:24, lg:24, xl:24 },
-                    }
-                ]
-            },
-            {
-                elements: [
-                    {
-                        _id: 'KundenkontakteBalkendiagramm',
-                        label: 'Kundenkontakte Balkendiagramm...',
-                        type: 'chart',
-                        chartType: 'Bar',
-                        width: { xs:24, sm:24, md:24, lg:12, xl:12 },
-                        static: true,
-                        datasource: 'adressen.AnzahlKontakte',
-                        /*data: {
-                            labels: ['Fraport', 'SAP', 'TELEKOM', 'ENGIE', 'Equinix', 'Lillium'],
-                            datasets: [
-                              {
-                                label: 'Anzahl Kontakte pro Adresse - Balkendiagramm...',
-                                data: [12, 19, 3, 25, 11, 7],
-                                fill: true,
-                                //backgroundColor: 'rgb(43, 114, 34)',
-                                //borderColor: 'rgba(255, 99, 132, 0.2)',
-                                backgroundColor: [ 'red' , 'blue' , 'rgb(255, 99, 132)' , 'green' , 'black' , 'orange' ],
-                              },
-                            ],
-                        },*/
-                        /*options: {
-                            scales: {
-                              yAxes: [
-                                {
-                                  ticks: {
-                                    beginAtZero: false,
-                                  },
-                                },
-                              ],
-                            },
-                        }*/
-                    /*},
-                    {
-                        _id:'Kundenkontakte Liniendiagramm',
-                        label: 'Kundenkontakte Liniendiagramm...',
-                        type: 'chart',
-                        chartType: 'Line',
-                        width: { xs:24, sm:24, md:24, lg:12, xl:12 },
-                        data: {
-                            labels: ['Fraport', 'SAP', 'TELEKOM', 'ENGIE', 'Equinix', 'Lillium'],
-                            datasets: [
-                              {
-                                label: 'Anzahl Kontakte pro Adresse - Liniendiagramm...',
-                                data: [12, 19, 3, 25, 11, 7],
-                                fill: true,
-                                backgroundColor: 'rgb(29, 49, 141)',
-                                //borderColor: 'rgba(255, 99, 132, 0.2)',
-                              },
-                            ],
-                        },*/
-                        /*options: {
-                            scales: {
-                              yAxes: [
-                                {
-                                  ticks: {
-                                    beginAtZero: true,
-                                  },
-                                },
-                              ],
-                            },
-                        }*/
-                    
-    
-    //const { Meta } = Card;
-
-    /*const renderWidget = ( element ) => {
-        return <Card>
-                <Meta
-                    avatar={<Avatar icon={<i className={element.icon} />}/>}
-                    title={element.label}/>
-                <Statistic
-                    value = {element.staticValue}
-                    valueStyle = {{ color: element.color }}/>
-            </Card>;
-    }*/

@@ -1,4 +1,6 @@
 import { Meteor } from 'meteor/meteor';
+import { check } from 'meteor/check';
+
 import { getModuleStore } from '../../imports/coreapi';
 
 import { Mods } from '../../imports/coreapi/collections/mods';
@@ -23,6 +25,42 @@ const InfoSchema = new SimpleSchema({
 });
 
 Meteor.methods({
+    'modules.getMetadata'(moduleId) {
+        check(moduleId, String);
+
+        const currentUser = Meteor.users.findOne(this.userId);
+
+        if (!currentUser)
+            return { moduleData: null, status: '403', message: 'Sie sind noch nicht am System angemeldet und haben keinen Zugriff auf das angegebene Modul.' }
+    
+        const moduleData = Mods.findOne({
+            $and: [
+                { _id: moduleId },
+                {
+                    $or: [
+                        { "sharedWith.user.userId": currentUser._id },
+                        { sharedWithRoles: { $in: currentUser.userData.roles } }
+                    ]
+                }
+            ]
+        });
+
+        if (moduleData) {
+            return { moduleData, status: '200', message: null }
+        }
+
+        // es wurden keine Moduldaten zurückgeliefert
+        // prüfen, ob der angemeldete Benutzer nicht berechtigt ist, oder ob die
+        // angegebene ModulId ungültig ist
+        if (!Mods.findOne(moduleId)) {
+            // die angegeben ModulId ist ungültig
+            return { moduleData: null, status: '404', message: `Die ModulId "${moduleId}" ist ungültig.` }
+        }
+
+        // der angemeldete Benutzer hat keinen Zugriff/Berechtigung
+        // das Modul existiert zwar aber ist nicht für diese Benutzer bestimmt
+        return { moduleData: null, status: '403', message: `Sie besitzen nicht die notwendigen Berechtigungen für den Zugriff auf das Modul "${moduleId}". Der Zugriff wurde verweigert.` }
+    },
     'modules.clientCollectionInit'() {
         const allModules = Mods.find({}, { fields: { _id: 1 }}).map( ({ _id }) => {
             const moduleStore = getModuleStore(_id);

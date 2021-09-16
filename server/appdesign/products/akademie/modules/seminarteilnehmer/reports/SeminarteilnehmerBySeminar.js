@@ -20,7 +20,7 @@ const reportDefinition = {
             title: 'Teilnehmer',
             dataIndex: 'title',
             key: 'title',
-            render: (title, { _id }, { renderExport }) => {
+            render: function renderTeilnehmer(title, { _id }, { renderExport }) {
                 return (
                     renderExport 
                         ? title
@@ -74,7 +74,7 @@ const reportDefinition = {
             type: 'secondary',
 
             description: 'Export der Reportdaten als CSV',
-            icon: 'fas fa-file',
+            icon: 'fas fa-file-csv',
             
             visibleBy: [ 'ADMIN', 'EMPLOYEE' ],
             executeBy: [ 'ADMIN', 'EMPLOYEE' ],
@@ -95,7 +95,7 @@ const reportDefinition = {
             type: 'more',
 
             description: 'Export der Reportdaten als PDF',
-            icon: 'fas fa-pdf',
+            icon: 'far fa-file-pdf',
             
             visibleBy: [ 'ADMIN', 'EMPLOYEE' ],
             executeBy: [ 'ADMIN', 'EMPLOYEE' ],
@@ -124,9 +124,26 @@ const reportDefinition = {
         },
         {
             title: 'Löschen',
-            type: 'more',
+            type: 'secondary',
             description: 'Löschen eines Seminarteilnehmers',
             icon: 'fas fa-trash',
+            iconOnly: true,
+
+            visibleBy: [ 'ADMIN', 'EMPLOYEE' ],
+            executeBy: [ 'ADMIN', 'EMPLOYEE' ],
+
+            onExecute: { 
+                // executes meteor method
+                runScript: (props /*{ mode, data, record, defaults, currentUser, isServer }*/) => {
+                    console.log('Run Script', props);
+                }
+            }
+        },
+        {
+            title: 'Anmailen',
+            type: 'more',
+            description: 'Teilnehmer eine E-Mail schreiben',
+            icon: 'fas fa-envelope',
 
             visibleBy: [ 'ADMIN', 'EMPLOYEE' ],
             executeBy: [ 'ADMIN', 'EMPLOYEE' ],
